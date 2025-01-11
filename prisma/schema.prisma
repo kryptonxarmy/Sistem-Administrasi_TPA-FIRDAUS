@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // atau provider database yang Anda gunakan
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int       @id @default(autoincrement())
+  name     String
+  email    String    @unique
+  password String
+  role     Role
+  admin    Admin?
+  parent   Parent?
+  sentMessages     Message[] @relation("Sender")
+  receivedMessages Message[] @relation("Receiver")
+}
+
+model Admin {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model Parent {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id])
+  child  Child[]
+}
+
+model Child {
+  id         Int          @id @default(autoincrement())
+  name       String
+  studentId  String       @unique
+  phone      String
+  birthDate  DateTime
+  gender     String
+  address    String
+  city       String
+  postalCode String
+  country    String
+  parentId   Int
+  parent     Parent       @relation(fields: [parentId], references: [id])
+  classId    Int
+  class      Class        @relation(fields: [classId], references: [id])
+  progress   Progress[]
+  Attendance Attendance[]
+}
+
+model Teacher {
+  id         Int            @id @default(autoincrement())
+  name       String
+  email      String         @unique
+  phone      String
+  birthDate  DateTime
+  gender     String
+  address    String
+  city       String
+  postalCode String
+  country    String
+  activities CoreActivity[]
+  Attendance Attendance[]
+}
+
+model Class {
+  id           Int            @id @default(autoincrement())
+  name         String
+  ageGroup     String
+  children     Child[]
+  activities   Activity[]
+  CoreActivity CoreActivity[]
+}
+
+model Activity {
+  id                    Int              @id @default(autoincrement())
+  week                  Int
+  learningModuleId      Int
+  learningModule        LearningModule   @relation(fields: [learningModuleId], references: [id])
+  allocationId          Int
+  allocation            Allocation       @relation(fields: [allocationId], references: [id])
+  classId               Int
+  class                 Class            @relation(fields: [classId], references: [id])
+  profilePancasilaDesc  String
+  facilityDesc          String
+  details               ActivityDetail[]
+  learningGoals         LearningGoal[]
+}
+
+model LearningGoal {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  activityId  Int
+  activity    Activity @relation(fields: [activityId], references: [id])
+}
+
+model ActivityDetail {
+  id              Int      @id @default(autoincrement())
+  day             String
+  activity        String
+  completed       Boolean
+  remarks         String
+  activityId      Int
+  relatedActivity Activity @relation(fields: [activityId], references: [id])
+}
+
+model CoreActivity {
+  id        Int      @id @default(autoincrement())
+  week      Int
+  day       String
+  activity  String
+  remarks   String
+  completed Boolean
+  classId   Int
+  class     Class    @relation(fields: [classId], references: [id])
+  Teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  teacherId Int?
+}
+
+model Attendance {
+  id            Int       @id @default(autoincrement())
+  date          DateTime
+  type          String // "child" or "teacher"
+  childId       Int? // Nullable for teacher attendance
+  teacherId     Int? // Nullable for child attendance
+  status        String // "present", "absent", "excused"
+  pengantar     String? // optional siapa saja yg mengantar
+  penjemput     String? // optional siapa saja yg menjemput
+  arrivalTime   DateTime?
+  departureTime DateTime?
+  remarks       String?
+  child         Child?    @relation(fields: [childId], references: [id])
+  teacher       Teacher?  @relation(fields: [teacherId], references: [id])
+}
+
+model Progress {
+  id         Int              @id @default(autoincrement())
+  date       DateTime
+  moralValue String
+  motorGross String
+  motorFine  String
+  cognitive  String
+  language   String
+  social     String
+  reflection String
+  comments   String?
+  childId    Int
+  child      Child            @relation(fields: [childId], references: [id])
+  details    ProgressDetail[]
+}
+
+model ProgressDetail {
+  id          Int      @id @default(autoincrement())
+  category    String // berisikan moral value, motorGross dll
+  progressId  Int
+  progress    Progress @relation(fields: [progressId], references: [id])
+  subDetails  SubCategoryDetail[]
+}
+
+model SubCategoryDetail {
+  id               Int      @id @default(autoincrement())
+  progressDetailId Int
+  subCategory      String
+  status           String
+  progressDetail   ProgressDetail @relation(fields: [progressDetailId], references: [id])
+}
+
+model Document {
+  id    Int       @id @default(autoincrement())
+  type  String // "gallery", "attendanceHistory", "menuList"
+  title String?
+  link  String?
+  day   String?
+  date  DateTime?
+  menu  String?
+}
+
+model AcademicCalendar {
+  id          Int      @id @default(autoincrement())
+  date        DateTime
+  activity    String
+  description String
+  completed   Boolean
+}
+
+model LearningModule {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  activities  Activity[]
+}
+
+model Allocation {
+  id          Int      @id @default(autoincrement())
+  duration    String
+  activities  Activity[]
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  content    String
+  senderId   Int
+  sender     User     @relation(fields: [senderId], references: [id], name: "Sender")
+  receiverId Int
+  receiver   User     @relation(fields: [receiverId], references: [id], name: "Receiver")
+}
+
+enum Role {
+  ADMIN
+  PARENT
+}
