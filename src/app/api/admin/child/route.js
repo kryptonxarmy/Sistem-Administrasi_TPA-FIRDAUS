@@ -25,7 +25,7 @@ export async function POST(req) {
     });
     return NextResponse.json({ success: true, child });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message });
+    return NextResponse.json({ success: false, error: error.message }, 500);
   }
 }
 
@@ -47,6 +47,32 @@ export async function GET(req) {
     });
     return NextResponse.json({ success: true, children });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message });
+    return NextResponse.json({ success: false, error: error.message }, 500);
+  }
+}
+
+export async function PUT(req) {
+  const { id, parentId, name, studentId, phone, birthDate, gender, address, city, postalCode, country, classId } = await req.json();
+
+  try {
+    const updatedChild = await prisma.child.update({
+      where: { id: parseInt(id) },
+      data: {
+        name,
+        studentId,
+        phone,
+        birthDate: new Date(birthDate),
+        gender,
+        address,
+        city,
+        postalCode,
+        country,
+        parentId,
+        classId,
+      },
+    });
+    return NextResponse.json({ success: true, child: updatedChild });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, 500);
   }
 }

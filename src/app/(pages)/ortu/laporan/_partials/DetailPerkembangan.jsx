@@ -1,62 +1,107 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import SubKategoriPerkembangan from './SubKategoriPerkembangan';
+import React, { useState, useEffect } from "react";
 import useUser from "@/hooks/useUser";
 
 export default function DetailPerkembangan() {
   const { user, children } = useUser(); // Menggunakan hook untuk mendapatkan informasi pengguna
-  const [category, setCategory] = useState([]);
-  const [selectedDetail, setSelectedDetail] = useState(null);
+  const [progress, setProgress] = useState([]);
+  const [selectedChild, setSelectedChild] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && children.length > 0) {
-      children.forEach(child => fetchSubCategories(child.id)); // Mengambil detail perkembangan berdasarkan childId setiap anak
+    if (children && children.length > 0) {
+      setSelectedChild(children[0].id.toString());
     }
-  }, [user, children]);
+  }, [children]);
 
-  const fetchSubCategories = async (childId) => {
+  useEffect(() => {
+    if (selectedChild) {
+      fetchProgress(selectedChild);
+    }
+  }, [selectedChild]);
+
+  const fetchProgress = async (childId) => {
     try {
       const res = await fetch(`/api/admin/laporan/getProgressByChildId?childId=${childId}`);
       const data = await res.json();
-      if (data.success) {
-        setCategory(prevCategory => [...prevCategory, { childId, progressDetails: data.progressDetails }]);
+      if (data.success && data.progress) {
+        setProgress(data.progress);
       } else {
         console.error("Failed to fetch progress details:", data.message);
       }
     } catch (error) {
       console.error("Failed to fetch progress details:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
-      <h1 className="text-lg font-bold text-primary mb-4 mt-8">Detail Perkembangan</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        {children.map((child) => (
-          <div key={child.id}>
-            <h2 className="text-md font-bold text-secondary mb-2">{child.name}</h2>
-            {category
-              .filter((item) => item.childId === child.id)
-              .flatMap((item) => item.progressDetails)
-              .map((detail, i) => (
-                <div key={detail.id - Math.random()} className="bg-purple-200 flex gap-4 mb-4 rounded-xl p-4">
-                  <div className="my-auto">
-                    <p className="text-primary text-xl font-bold">{i+1}. {detail.category}</p>
+      <h1 className="text-2xl font-bold mb-4">Detail Perkembangan</h1>
+      <div className="mb-4">
+        <label htmlFor="child" className="block text-sm font-medium text-gray-700">
+          Pilih Anak
+        </label>
+        <select
+          id="child"
+          name="child"
+          value={selectedChild}
+          onChange={(e) => setSelectedChild(e.target.value)}
+          className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+        >
+          {children && children.map((child) => (
+            <option key={child.id} value={child.id}>
+              {child.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div>
+          {progress.length === 0 ? (
+            <div>Anak ini belum memiliki laporan</div>
+          ) : (
+            progress.map((item) => (
+              <div key={item.id} className="mb-4">
+                <h2 className="text-xl font-bold mb-2">{item.child.name}</h2>
+                <p className="text-sm text-gray-600">Tanggal: {new Date(item.date).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-600">Semester: {item.semester.number}</p>
+                <p className="text-sm text-gray-600">Tahun Ajar: {item.academicYear.year}</p>
+                {item.details.map((detail) => (
+                  <Accordion key={detail.id} title={detail.category}>
                     {detail.subDetails.map((subDetail) => (
-                      <div key={subDetail.id - Math.random()} className="ml-4">
-                        <p className="text-gray-700 font-bold">{subDetail.subCategory}</p>
-                        <p className="text-gray-500">{subDetail.status}</p>
+                      <div key={subDetail.id} className="p-2 border-b">
+                        <p className="text-sm font-medium text-gray-700">{subDetail.subCategory}</p>
+                        <p className="text-sm text-gray-600">{subDetail.status}</p>
                       </div>
                     ))}
-                  </div>
-                </div>
-              ))}
-          </div>
-        ))}
-      </div>
-      {selectedDetail && <SubKategoriPerkembangan detail={selectedDetail} />}
+                  </Accordion>
+                ))}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Accordion({ title, children }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border rounded-md mb-2">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:bg-gray-300"
+      >
+        {title}
+      </button>
+      {isOpen && <div className="p-4">{children}</div>}
     </div>
   );
 }

@@ -26,6 +26,10 @@ export default function useUser() {
           },
         });
 
+        if (res.status === 401) {
+          router.push("/auth/login");
+        }
+
         const data = await res.json();
         if (res.ok) {
           console.log("User data fetched:", data.user);
@@ -42,7 +46,7 @@ export default function useUser() {
             });
             const childData = await childRes.json();
             if (childRes.ok) {
-              const filteredChildren = childData?.children?.filter(child => child.parent.userId === data.user.id);
+              const filteredChildren = childData?.children?.filter((child) => child.parent.userId === data.user.id);
               console.log("Children data fetched for parent:", filteredChildren);
               setChildren(filteredChildren);
             } else {

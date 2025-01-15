@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CapaianPembelajaran from "./_partials/CapaianPembelajaran";
 import TujuanKegiatan from "./_partials/TujuanKegiatan";
 import KegiatanInti from "./_partials/KegiatanInti";
 
-export default function Detail({ activityId }) {
+export default function Detail({ data }) {
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
   return (
     <div className="">
       <Tabs defaultValue="Capaian Pembelajaran" className="w-full">
@@ -20,13 +23,13 @@ export default function Detail({ activityId }) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="Capaian Pembelajaran">
-          <CapaianPembelajaran activityId={activityId}/>
+          <CapaianPembelajaran data={data} />
         </TabsContent>
         <TabsContent value="Tujuan Kegiatan">
-          <TujuanKegiatan  activityId={activityId}/>
+          <TujuanKegiatan data={data.description} />
         </TabsContent>
         <TabsContent value="Kegiatan Inti">
-          <KegiatanInti activityId={activityId}/>
+          <KegiatanInti data={data.activities} />
         </TabsContent>
       </Tabs>
     </div>

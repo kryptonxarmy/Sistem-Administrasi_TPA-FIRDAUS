@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-export default function FormAnak({ status, data, onKembali }) {
+export default function FormAnak({ status, data, onKembali, fetchChildren }) {
   const [formData, setFormData] = useState({
     name: "",
     parentId: "",
@@ -65,31 +65,20 @@ export default function FormAnak({ status, data, onKembali }) {
         classId: parseInt(formData.classId), // Ensure classId is an integer
       };
 
-      if (status === "edit") {
-        // Update data
-        const res = await fetch(`/api/admin/child/updateAnak`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          throw new Error("Failed to update child");
-        }
-      } else {
-        // Add new data
-        const res = await fetch("/api/admin/child", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          throw new Error("Failed to add child");
-        }
+      const method = status === "edit" ? "PUT" : "POST";
+      const res = await fetch("/api/admin/child", {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to ${status === "edit" ? "update" : "add"} child`);
       }
+
+      fetchChildren(); // Update daftar anak setelah submit
       onKembali(); // Kembali ke tampilan tabel setelah submit
     } catch (error) {
       console.error(error.message);

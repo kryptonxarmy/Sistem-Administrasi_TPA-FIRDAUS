@@ -68,7 +68,7 @@ export default function Notifikasi() {
     setShowSendForm(true);
   };
 
-  const handleReplySubmit = async (formData) => {
+  const handleFormSubmit = async (formData) => {
     try {
       const res = await fetch(`/api/notifikasi`, {
         method: "POST",
@@ -82,38 +82,33 @@ export default function Notifikasi() {
       if (data.success) {
         fetchMessages(); // Refresh data after save
         setShowReplyForm(false);
+        setShowSendForm(false);
       } else {
-        console.error("Failed to save reply data:", data.message);
+        console.error("Failed to save message data:", data.message);
       }
     } catch (error) {
-      console.error("Failed to save reply data:", error);
+      console.error("Failed to save message data:", error);
     }
   };
 
-  const handleSendSubmit = async (formData) => {
-    if (!formData.receiverId) {
-      console.error("Receiver ID is required");
-      return;
-    }
-
+  const handleDelete = async (id) => {
     try {
       const res = await fetch(`/api/notifikasi`, {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ id }),
       });
 
       const data = await res.json();
       if (data.success) {
-        fetchMessages(); // Refresh data after save
-        setShowSendForm(false);
+        fetchMessages(); // Refresh data after delete
       } else {
-        console.error("Failed to send message:", data.message);
+        console.error("Failed to delete message data:", data.message);
       }
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error("Failed to delete message data:", error);
     }
   };
 
@@ -129,7 +124,7 @@ export default function Notifikasi() {
           <DialogHeader>
             <DialogTitle>Balas Pesan</DialogTitle>
           </DialogHeader>
-          <ReplyForm onSubmit={handleReplySubmit} initialData={replyData} />
+          <SendForm onSubmit={handleFormSubmit} initialData={replyData} user={user} parents={parents} role={role} />
           <DialogFooter>
             <Button onClick={handleKembali} className="btn btn-secondary">
               Kembali
@@ -142,7 +137,7 @@ export default function Notifikasi() {
           <DialogHeader>
             <DialogTitle>Kirim Pesan</DialogTitle>
           </DialogHeader>
-          <SendForm onSubmit={handleSendSubmit} user={user} parents={parents} role={role} />
+          <SendForm onSubmit={handleFormSubmit} user={user} parents={parents} role={role} />
           <DialogFooter>
             <Button onClick={handleKembali} className="btn btn-secondary">
               Kembali
@@ -175,6 +170,9 @@ export default function Notifikasi() {
                 <Button onClick={() => handleReply(msg)} className="bg-primary text-white font-semibold rounded-xl px-4">
                   Balas
                 </Button>
+                <Button onClick={() => handleDelete(msg.id)} className="bg-red-500 text-white font-semibold rounded-xl px-4 ml-2">
+                  Delete
+                </Button>
               </TableCell>
             </TableRow>
           ))}
@@ -184,69 +182,24 @@ export default function Notifikasi() {
   );
 }
 
-function ReplyForm({ onSubmit, initialData }) {
-  const [formData, setFormData] = useState({
-    id: "",
-    date: "",
-    content: "",
-    time: "",
-    senderId: "",
-    receiverId: "",
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        id: initialData.id || "",
-        date: initialData.date ? new Date(initialData.date).toISOString().substring(0, 10) : "",
-        content: initialData.content || "",
-        time: initialData.date ? new Date(initialData.date).toISOString().substring(11, 16) : "",
-        senderId: initialData.senderId || "",
-        receiverId: initialData.receiverId || "",
-      });
-    }
-  }, [initialData]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      id: "",
-      date: "",
-      content: "",
-      time: "",
-      senderId: "",
-      receiverId: "",
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4 border-2 border-primary rounded-xl">
-      <label className="font-semibold">Pesan</label>
-      <Input type="text" name="content" value={formData.content} onChange={handleChange} placeholder="Pesan" className="border-2 border-primary rounded-xl" />
-
-      <Button type="submit" className="bg-primary text-white font-semibold rounded-xl px-4">
-        Balas
-      </Button>
-    </form>
-  );
-}
-
-function SendForm({ onSubmit, parents, role, user }) {
+function SendForm({ onSubmit, initialData, parents, role, user }) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().substring(0, 10),
     content: "",
     senderId: role === "PARENT" ? user.id : 1, // ID admin jika role adalah ADMIN
     receiverId: role === "PARENT" ? 1 : "", // ID admin jika role adalah parent
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        date: new Date().toISOString().substring(0, 10),
+        content: "",
+        senderId: user.id,
+        receiverId: initialData.senderId,
+      });
+    }
+  }, [initialData, user.id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -300,7 +253,7 @@ function SendForm({ onSubmit, parents, role, user }) {
       <Input type="text" name="content" value={formData.content} onChange={handleChange} placeholder="Pesan" className="border-2 border-primary rounded-xl" />
 
       <Button type="submit" className="bg-primary text-white font-semibold rounded-xl px-4">
-        Kirim
+        {initialData ? "Balas" : "Kirim"}
       </Button>
     </form>
   );

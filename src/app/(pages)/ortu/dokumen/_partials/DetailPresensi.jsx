@@ -6,61 +6,59 @@ export default function DetailPresensi({ data }) {
     return <div>Loading...</div>;
   }
 
+  const isPresent = data.status === "present";
+
   return (
     <div>
       <h1 className="text-2xl font-bold">Detail Presensi</h1>
       <div className="mt-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <label htmlFor="namaAnak" className="block text-sm font-medium text-gray-700">
-              Nama Anak
-            </label>
-            <Input type="text" name="namaAnak" id="namaAnak" value={data.nama} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
-          </div>
-          <div>
-            <label htmlFor="tanggal" className="block text-sm font-medium text-gray-700">
-              Tanggal
-            </label>
-            <Input type="date" name="tanggal" id="tanggal" value={data.tanggal} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
-          </div>
-          <div>
+        <div className="mb-4">
+          <label htmlFor="namaAnak" className="block text-sm font-medium text-gray-700">
+            Nama Anak
+          </label>
+          <Input type="text" name="namaAnak" id="namaAnak" value={data.child?.name || ""} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
+        </div>
+        <div className="flex justify-between mb-4">
+          <div className="w-1/2 pr-2">
             <label htmlFor="kehadiran" className="block text-sm font-medium text-gray-700">
               Kehadiran
             </label>
-            <Input type="text" name="kehadiran" id="kehadiran" value={data.kehadiran} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
+            <Input type="text" name="kehadiran" id="kehadiran" value={isPresent ? "Hadir" : data.status === "excused" ? "Sakit" : "Alpa"} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
           </div>
-          <div>
-            <label htmlFor="keterangan" className="block text-sm font-medium text-gray-700">
-              Keterangan
+          <div className="w-1/2 pl-2">
+            <label htmlFor="tanggal" className="block text-sm font-medium text-gray-700">
+              Tanggal
             </label>
-            <Input type="text" name="keterangan" id="keterangan" value={data.keterangan} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
+            <Input type="date" name="tanggal" id="tanggal" value={data.date ? new Date(data.date).toISOString().split("T")[0] : ""} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
           </div>
         </div>
-      </div>
-      <div>
-        <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="bg-purple-200 p-4 rounded-md">
-                <h2 className="text-xl font-semibold mb-4">Pengantar</h2>
-                <div className="flex justify-between">
-                    <span className="font-medium">Nama Pengantar:</span>
-                    <span>{'samsull'}</span>
-                </div>
-                <div className="flex justify-between mt-2">
-                    <span className="font-medium">Jam Pengantaran:</span>
-                    <span>{'18:30'}</span>
-                </div>
+        <div className="flex justify-between gap-4 mb-4">
+          <div className="w-1/2 bg-gradient-to-br from-purple-200 to-purple-100 px-8 py-4 rounded-md shadow-md">
+            <h2 className="text-lg font-bold mb-2">PENGANTAR</h2>
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Nama Pengantar</p>
+                <p className="mb-2">{isPresent ? data.pengantar : "-"}</p>
+              </div>
+              <p className="text-3xl font-bold">{isPresent ? (data.arrivalTime ? new Date(data.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-") : "-"}</p>
             </div>
-            <div className="bg-purple-200 p-4 rounded-md">
-                <h2 className="text-xl font-semibold mb-4">Penjemput</h2>
-                <div className="flex justify-between">
-                    <span className="font-medium">Nama Penjemput:</span>
-                    <span>{'samsull'}</span>
-                </div>
-                <div className="flex justify-between mt-2">
-                    <span className="font-medium">Jam Penjemputan:</span>
-                    <span>{'20:30'}</span>
-                </div>
+          </div>
+          <div className="w-1/2 pl-2 bg-gradient-to-br from-purple-200 to-purple-100 px-8 py-4 rounded-md shadow-md">
+            <h2 className="text-lg font-bold mb-2">PENJEMPUT</h2>
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Nama Penjemput</p>
+                <p className="mb-2">{isPresent ? data.penjemput : "-"}</p>
+              </div>
+              <p className="text-3xl font-bold">{isPresent ? (data.departureTime ? new Date(data.departureTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-") : "-"}</p>
             </div>
+          </div>
+        </div>
+        <div className="col-span-2">
+          <label htmlFor="remarks" className="block text-sm font-medium text-gray-700">
+            Keterangan
+          </label>
+          <Input type="text" name="remarks" id="remarks" value={data.remarks || ""} readOnly className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
         </div>
       </div>
     </div>

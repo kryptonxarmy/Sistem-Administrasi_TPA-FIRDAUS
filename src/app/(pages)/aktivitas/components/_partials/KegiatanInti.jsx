@@ -7,23 +7,40 @@ export default function KegiatanInti() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editData, setEditData] = useState({
-    week: "",
+    title: "",
+    description: "",
     day: "",
-    activity: "",
-    remarks: "",
-    classId: 1, // Default classId
-    teacherId: 1, // Default teacherId
+    week: "1", // Default week value as string
+    classId: "1", // Default classId as string
+    learningModuleId: "1", // Default learningModuleId as string
     completed: false,
   });
   const [selectedWeek, setSelectedWeek] = useState(1);
+  const [selectedClass, setSelectedClass] = useState("1"); // Default classId as string
+  const [classes, setClasses] = useState([]);
 
   useEffect(() => {
+    fetchClasses();
     fetchKegiatanInti();
-  }, []);
+  }, [selectedClass]);
+
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch("/api/class");
+      const data = await res.json();
+      if (data.success) {
+        setClasses(data.classes);
+      } else {
+        console.error("Failed to fetch classes:", data.message);
+      }
+    } catch (error) {
+      console.error("Failed to fetch classes:", error);
+    }
+  };
 
   const fetchKegiatanInti = async () => {
     try {
-      const res = await fetch("/api/admin/aktivitas/kegiatanInti");
+      const res = await fetch(`/api/admin/aktivitas?classId=${selectedClass}`);
       const data = await res.json();
       if (data.success) {
         setTableData(data.coreActivities);
@@ -47,13 +64,13 @@ export default function KegiatanInti() {
     try {
       const payload = {
         ...editData,
-        week: parseInt(selectedWeek), // Ambil week dari filter
-        classId: parseInt(editData.classId) || 1, // Default classId
-        teacherId: parseInt(editData.teacherId) || 1, // Default teacherId
-        completed: editData.completed === "true",
+        week: parseInt(editData.week), // Konversi week menjadi integer
+        classId: parseInt(editData.classId), // Konversi classId menjadi integer
+        learningModuleId: parseInt(editData.learningModuleId), // Konversi learningModuleId menjadi integer
+        completed: editData.completed === "true" || editData.completed === true,
       };
 
-      const res = await fetch(`/api/admin/aktivitas/kegiatanInti${isEdit ? "/updateKegiatan" : ""}`, {
+      const res = await fetch(`/api/admin/aktivitas`, {
         method: isEdit ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,6 +95,8 @@ export default function KegiatanInti() {
     setEditData({
       ...data,
       week: data.week.toString(), // Konversi week menjadi string untuk input form
+      classId: data.classId.toString(), // Konversi classId menjadi string untuk input form
+      learningModuleId: data.learningModuleId.toString(), // Konversi learningModuleId menjadi string untuk input form
     });
     setIsEdit(true);
     setIsModalOpen(true);
@@ -85,12 +104,12 @@ export default function KegiatanInti() {
 
   const handleTambah = () => {
     setEditData({
-      week: selectedWeek.toString(), // Set default week value
+      title: "",
+      description: "",
       day: "",
-      activity: "",
-      remarks: "",
-      classId: 1, // Default classId
-      teacherId: 1, // Default teacherId
+      week: selectedWeek.toString(), // Set default week value
+      classId: selectedClass, // Default classId as string
+      learningModuleId: "1", // Default learningModuleId as string
       completed: false,
     });
     setIsEdit(false);
@@ -99,7 +118,7 @@ export default function KegiatanInti() {
 
   const getActivityForDay = (week, day) => {
     const activity = tableData.find((item) => item.week === week && item.day === day);
-    return activity ? activity.activity : "";
+    return activity ? activity.title : "";
   };
 
   const getStatusForDay = (week, day) => {
@@ -123,12 +142,22 @@ export default function KegiatanInti() {
           ))}
         </select>
       </div>
+      <div className="mb-4">
+        <label htmlFor="class" className="mr-2">Pilih Kelas:</label>
+        <select id="class" value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="border border-gray-300 rounded-md p-2">
+          {classes.map((cls) => (
+            <option key={cls.id} value={cls.id}>
+              {cls.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <table className="min-w-full bg-white">
         <thead>
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hari</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aktivitas</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
           </tr>
@@ -138,7 +167,7 @@ export default function KegiatanInti() {
             <tr key={day}>
               <td className="border px-4 py-2">{day}</td>
               <td className="border px-4 py-2">{getActivityForDay(selectedWeek, day)}</td>
-              <td className="border px-4 py-2">{tableData.find((item) => item.week === selectedWeek && item.day === day)?.remarks || ""}</td>
+              <td className="border px-4 py-2">{tableData.find((item) => item.week === selectedWeek && item.day === day)?.description || ""}</td>
               <td className="border px-4 py-2">
                 <span className={`px-2 py-1 rounded-full ${getStatusForDay(selectedWeek, day) ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
                   {getStatusForDay(selectedWeek, day) ? "Selesai" : "Belum"}

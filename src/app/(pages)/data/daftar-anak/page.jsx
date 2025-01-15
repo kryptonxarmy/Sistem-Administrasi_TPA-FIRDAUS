@@ -84,7 +84,7 @@ export default function Page() {
       </div>
 
       {isTambahAnak || isEditAnak ? (
-        <FormAnak status={isEditAnak ? "edit" : "tambah"} data={editData} onKembali={handleKembali} />
+        <FormAnak status={isEditAnak ? "edit" : "tambah"} data={editData} onKembali={handleKembali} fetchChildren={fetchChildren} />
       ) : (
         <>
           <h1 className="text-xl font-bold">Daftar Anak</h1>

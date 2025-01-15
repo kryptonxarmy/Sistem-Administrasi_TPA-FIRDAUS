@@ -9,24 +9,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 
+const categoryOptions = [
+  "Kepekaan Panca Indra",
+  "Motorik Kasar",
+  "Motorik Halus",
+  "Kemampuan Berkomunikasi",
+  "Reaksi Emosi dan Interaksi Sosial",
+  "Kemampuan Kognitif"
+];
+
 export default function DetailPerkembangan() {
   const { id } = useParams();
   const [selectedDetail, setSelectedDetail] = useState(null);
   const [progressDetails, setProgressDetails] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     category: "",
     subDetails: [{ subCategory: "", status: "" }],
   });
 
   useEffect(() => {
-    fetchSubCategories();
+    fetchProgressDetails();
   }, [id]);
 
-  const fetchSubCategories = async () => {
+  const fetchProgressDetails = async () => {
     try {
-      const res = await fetch(`/api/admin/laporan/detailPerkembangan`);
+      const res = await fetch(`/api/admin/laporan/detailPerkembangan?childId=${id}`);
       const data = await res.json();
       if (data.success) {
         const filteredProgressDetails = data.progressDetails.filter(detail => detail.progress.childId === parseInt(id));
@@ -39,6 +49,14 @@ export default function DetailPerkembangan() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCategoryChange = (value) => {
+    setFormData({
+      ...formData,
+      category: value,
+      subDetails: [{ subCategory: "", status: "" }],
+    });
   };
 
   const handleInputChange = (e, index) => {
@@ -59,6 +77,12 @@ export default function DetailPerkembangan() {
     });
   };
 
+  const handleRemoveSubDetail = (index) => {
+    const subDetails = [...formData.subDetails];
+    subDetails.splice(index, 1);
+    setFormData({ ...formData, subDetails });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -71,8 +95,8 @@ export default function DetailPerkembangan() {
       });
       const data = await res.json();
       if (data.success) {
-        fetchSubCategories();
-        setIsDialogOpen(false);
+        fetchProgressDetails();
+        setIsAddDialogOpen(false);
       } else {
         console.error('Failed to add progress detail:', data.message);
       }
@@ -81,72 +105,77 @@ export default function DetailPerkembangan() {
     }
   };
 
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/admin/laporan/detailPerkembangan', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...formData, id: selectedDetail.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchProgressDetails();
+        setIsEditDialogOpen(false);
+      } else {
+        console.error('Failed to update progress detail:', data.message);
+      }
+    } catch (error) {
+      console.error('Failed to update progress detail:', error);
+    }
+  };
+
+  const handleDelete = async (detailId) => {
+    try {
+      const res = await fetch('/api/admin/laporan/detailPerkembangan', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: detailId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchProgressDetails();
+      } else {
+        console.error('Failed to delete progress detail:', data.message);
+      }
+    } catch (error) {
+      console.error('Failed to delete progress detail:', error);
+    }
+  };
+
+  const handleViewDetail = (detail) => {
+    if (selectedDetail && selectedDetail.id === detail.id) {
+      setSelectedDetail(null);
+    } else {
+      setSelectedDetail(detail);
+    }
+  };
+
+  const handleAddDialogClose = () => {
+    setIsAddDialogOpen(false);
+    setFormData({
+      category: "",
+      subDetails: [{ subCategory: "", status: "" }],
+    });
+  };
+
+  const handleEditDialogClose = () => {
+    setIsEditDialogOpen(false);
+    setSelectedDetail(null);
+    setFormData({
+      category: "",
+      subDetails: [{ subCategory: "", status: "" }],
+    });
+  };
+
+  const availableCategories = categoryOptions.filter(category => !progressDetails.some(detail => detail.category === category));
+
   if (loading) {
     return <div>Loading...</div>;
-  }
-
-  if (!progressDetails || progressDetails.length === 0) {
-    return (
-      <div>
-        <div>No progress details found for the given child ID.</div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="mt-4">Add Progress Detail</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Progress Detail</DialogTitle>
-              <DialogDescription>Fill in the form below to add a new progress detail.</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select name="category" value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Kepekaan Panca Indra">Kepekaan Panca Indra</SelectItem>
-                      <SelectItem value="Motorik Kasar">Motorik Kasar</SelectItem>
-                      <SelectItem value="Motorik Halus">Motorik Halus</SelectItem>
-                      <SelectItem value="Kemampuan Berkomunikasi">Kemampuan Berkomunikasi</SelectItem>
-                      <SelectItem value="Reaksi Emosi dan Interaksi Sosial">Reaksi Emosi dan Interaksi Sosial</SelectItem>
-                      <SelectItem value="Kemampuan Kognitif">Kemampuan Kognitif</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {formData.subDetails.map((subDetail, index) => (
-                  <div key={index} className="grid grid-cols-1 gap-4">
-                    <div>
-                      <Label htmlFor={`subCategory-${index}`}>Sub Category</Label>
-                      <Input id={`subCategory-${index}`} name="subCategory" type="text" value={subDetail.subCategory} onChange={(e) => handleInputChange(e, index)} required />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label className="font-bold text-lg" htmlFor={`status-${index}`}>Status</Label>
-                      <Select name="status" value={subDetail.status} onValueChange={(value) => handleInputChange({ target: { name: "status", value } }, index)} required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Belum Berkembang">Belum Berkembang</SelectItem>
-                          <SelectItem value="Sedang Berkembang">Sedang Berkembang</SelectItem>
-                          <SelectItem value="Berkembang Baik">Berkembang Baik</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                ))}
-                <Button type="button" onClick={handleAddSubDetail} className="mt-2">Add Sub Detail</Button>
-              </div>
-              <DialogFooter>
-                <Button type="submit">Save</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
   }
 
   return (
@@ -155,42 +184,80 @@ export default function DetailPerkembangan() {
         <h1 className="text-xl font-bold">Detail Perkembangan</h1>
         {progressDetails && progressDetails.length > 0 ? (
           progressDetails.map((item) => (
-            <div key={item.id} className="flex justify-between items-center w-full">
-              <h1 className="text-bold text-xl">{item.category}</h1>
-              <Button onClick={() => setSelectedDetail(item)} className="bg-primary text-white px-6 rounded-xl">
-                Lihat Detail
-              </Button>
+            <div key={item.id} className="flex flex-col w-full">
+              <div className="flex justify-between items-center">
+                <h1 className="text-bold text-xl">{item.category}</h1>
+                <div className="flex gap-2">
+                  <Button onClick={() => handleViewDetail(item)} className="bg-blue-500 text-white px-6 rounded-xl">
+                    {selectedDetail && selectedDetail.id === item.id ? "Sembunyikan Detail" : "Lihat Detail"}
+                  </Button>
+                  <Button onClick={() => {
+                    setSelectedDetail(item);
+                    setFormData({
+                      category: item.category,
+                      subDetails: item.subDetails.map(sub => ({ subCategory: sub.subCategory, status: sub.status })),
+                    });
+                    setIsEditDialogOpen(true);
+                  }} className="bg-primary text-white px-6 rounded-xl">
+                    Edit
+                  </Button>
+                  <Button onClick={() => handleDelete(item.id)} className="bg-red-500 text-white px-6 rounded-xl">
+                    Delete
+                  </Button>
+                </div>
+              </div>
+              {selectedDetail && selectedDetail.id === item.id && (
+                <div className="mt-4">
+                  {item.subDetails.map((subDetail, index) => (
+                    <div key={index} className="flex flex-col border-2 border-gray-300 p-3 rounded-xl shadow- mb-4">
+                      <p className="font-semibold">{subDetail.subCategory}</p>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name={`status-${index}`} value="Belum Berkembang" checked={subDetail.status === "Belum Berkembang"} readOnly />
+                          <span>Belum Berkembang</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name={`status-${index}`} value="Sedang Berkembang" checked={subDetail.status === "Sedang Berkembang"} readOnly />
+                          <span>Sedang Berkembang</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name={`status-${index}`} value="Berkembang Baik" checked={subDetail.status === "Berkembang Baik"} readOnly />
+                          <span>Berkembang Baik</span>
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))
         ) : (
           <p>No details available</p>
         )}
       </div>
-      {selectedDetail && <SubKategoriPerkembangan detail={selectedDetail} />}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="mt-4">Add Progress Detail</Button>
+          <Button className="mt-4" onClick={() => setIsAddDialogOpen(true)}>Add Progress Detail</Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Progress Detail</DialogTitle>
-            <DialogDescription>Fill in the form below to add a new progress detail.</DialogDescription>
+            <DialogDescription>Fill in the form below to add a progress detail.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select name="category" value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })} required>
+                <Select name="category" value={formData.category} onValueChange={handleCategoryChange} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih Kategori" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Kepekaan Panca Indra">Kepekaan Panca Indra</SelectItem>
-                    <SelectItem value="Motorik Kasar">Motorik Kasar</SelectItem>
-                    <SelectItem value="Motorik Halus">Motorik Halus</SelectItem>
-                    <SelectItem value="Kemampuan Berkomunikasi">Kemampuan Berkomunikasi</SelectItem>
-                    <SelectItem value="Reaksi Emosi dan Interaksi Sosial">Reaksi Emosi dan Interaksi Sosial</SelectItem>
-                    <SelectItem value="Kemampuan Kognitif">Kemampuan Kognitif</SelectItem>
+                    {availableCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -213,12 +280,61 @@ export default function DetailPerkembangan() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <Button type="button" onClick={() => handleRemoveSubDetail(index)} className="mt-2 bg-red-500 text-white">Remove Sub Detail</Button>
                 </div>
               ))}
               <Button type="button" onClick={handleAddSubDetail} className="mt-2">Add Sub Detail</Button>
             </div>
             <DialogFooter>
               <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Progress Detail</DialogTitle>
+            <DialogDescription>Fill in the form below to edit the progress detail.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdate}>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <select name="category" value={formData.category} disabled >
+                    {availableCategories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              {formData.subDetails.map((subDetail, index) => (
+                <div key={index} className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Label htmlFor={`subCategory-${index}`}>Sub Category</Label>
+                    <Input id={`subCategory-${index}`} name="subCategory" type="text" value={subDetail.subCategory} onChange={(e) => handleInputChange(e, index)} required />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-bold text-lg" htmlFor={`status-${index}`}>Status</Label>
+                    <Select name="status" value={subDetail.status} onValueChange={(value) => handleInputChange({ target: { name: "status", value } }, index)} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Belum Berkembang">Belum Berkembang</SelectItem>
+                        <SelectItem value="Sedang Berkembang">Sedang Berkembang</SelectItem>
+                        <SelectItem value="Berkembang Baik">Berkembang Baik</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button type="button" onClick={() => handleRemoveSubDetail(index)} className="mt-2 bg-red-500 text-white">Remove Sub Detail</Button>
+                </div>
+              ))}
+              <Button type="button" onClick={handleAddSubDetail} className="mt-2">Add Sub Detail</Button>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Update</Button>
             </DialogFooter>
           </form>
         </DialogContent>

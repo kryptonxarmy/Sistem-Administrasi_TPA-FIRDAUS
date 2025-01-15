@@ -3,18 +3,18 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // atau provider database yang Anda gunakan
+  provider = "postgresql" // or the database provider you are using
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  name     String
-  email    String    @unique
-  password String
-  role     Role
-  admin    Admin?
-  parent   Parent?
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  password         String
+  role             Role
+  admin            Admin?
+  parent           Parent?
   sentMessages     Message[] @relation("Sender")
   receivedMessages Message[] @relation("Receiver")
 }
@@ -26,9 +26,9 @@ model Admin {
 }
 
 model Parent {
-  id     Int    @id @default(autoincrement())
-  userId Int    @unique
-  user   User   @relation(fields: [userId], references: [id])
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
   child  Child[]
 }
 
@@ -48,13 +48,13 @@ model Child {
   classId    Int
   class      Class        @relation(fields: [classId], references: [id])
   progress   Progress[]
-  Attendance Attendance[]
+  attendance Attendance[]
 }
 
 model Teacher {
-  id         Int            @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   name       String
-  email      String         @unique
+  email      String       @unique
   phone      String
   birthDate  DateTime
   gender     String
@@ -62,79 +62,51 @@ model Teacher {
   city       String
   postalCode String
   country    String
-  activities CoreActivity[]
-  Attendance Attendance[]
+  attendance Attendance[]
 }
 
 model Class {
-  id           Int            @id @default(autoincrement())
-  name         String
-  ageGroup     String
-  children     Child[]
-  activities   Activity[]
-  CoreActivity CoreActivity[]
-}
-
-model Activity {
-  id                    Int              @id @default(autoincrement())
-  week                  Int
-  learningModuleId      Int
-  learningModule        LearningModule   @relation(fields: [learningModuleId], references: [id])
-  allocationId          Int
-  allocation            Allocation       @relation(fields: [allocationId], references: [id])
-  classId               Int
-  class                 Class            @relation(fields: [classId], references: [id])
-  profilePancasilaDesc  String
-  facilityDesc          String
-  details               ActivityDetail[]
-  learningGoals         LearningGoal[]
-}
-
-model LearningGoal {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  activityId  Int
-  activity    Activity @relation(fields: [activityId], references: [id])
-}
-
-model ActivityDetail {
-  id              Int      @id @default(autoincrement())
-  day             String
-  activity        String
-  completed       Boolean
-  remarks         String
-  activityId      Int
-  relatedActivity Activity @relation(fields: [activityId], references: [id])
+  id              Int              @id @default(autoincrement())
+  name            String // Example: "Class A"
+  ageGroup        String // Example: "5-6 Years"
+  semesterId      Int
+  semester        Semester         @relation(fields: [semesterId], references: [id])
+  children        Child[]
+  coreActivities  CoreActivity[]
+  learningModules LearningModule[] @relation("ClassLearningModules")
 }
 
 model CoreActivity {
-  id        Int      @id @default(autoincrement())
-  week      Int
-  day       String
-  activity  String
-  remarks   String
-  completed Boolean
-  classId   Int
-  class     Class    @relation(fields: [classId], references: [id])
-  Teacher   Teacher? @relation(fields: [teacherId], references: [id])
-  teacherId Int?
+  id               Int            @id @default(autoincrement())
+  title            String
+  description      String?
+  day              String
+  week             Int
+  classId          Int
+  class            Class          @relation(fields: [classId], references: [id])
+  learningModuleId Int
+  learningModule   LearningModule @relation(fields: [learningModuleId], references: [id])
+  completed        Boolean
 }
 
 model Attendance {
-  id            Int       @id @default(autoincrement())
-  date          DateTime
-  type          String // "child" or "teacher"
-  childId       Int? // Nullable for teacher attendance
-  teacherId     Int? // Nullable for child attendance
-  status        String // "present", "absent", "excused"
-  pengantar     String? // optional siapa saja yg mengantar
-  penjemput     String? // optional siapa saja yg menjemput
-  arrivalTime   DateTime?
-  departureTime DateTime?
-  remarks       String?
-  child         Child?    @relation(fields: [childId], references: [id])
-  teacher       Teacher?  @relation(fields: [teacherId], references: [id])
+  id             Int          @id @default(autoincrement())
+  date           DateTime
+  type           String // "child" or "teacher"
+  childId        Int? // Nullable for teacher attendance
+  teacherId      Int? // Nullable for child attendance
+  status         String // "present", "absent", "excused"
+  pengantar      String? // optional who accompanied
+  penjemput      String? // optional who picked up
+  arrivalTime    DateTime?
+  departureTime  DateTime?
+  remarks        String?
+  child          Child?       @relation(fields: [childId], references: [id])
+  teacher        Teacher?     @relation(fields: [teacherId], references: [id])
+  semesterId     Int
+  semester       Semester     @relation(fields: [semesterId], references: [id])
+  academicYearId Int
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
 }
 
 model Progress {
@@ -151,18 +123,23 @@ model Progress {
   childId    Int
   child      Child            @relation(fields: [childId], references: [id])
   details    ProgressDetail[]
+
+  semesterId     Int
+  semester       Semester     @relation(fields: [semesterId], references: [id])
+  academicYearId Int
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
 }
 
 model ProgressDetail {
-  id          Int      @id @default(autoincrement())
-  category    String // berisikan moral value, motorGross dll
-  progressId  Int
-  progress    Progress @relation(fields: [progressId], references: [id])
-  subDetails  SubCategoryDetail[]
+  id         Int                 @id @default(autoincrement())
+  category   String // containing moral value, motorGross, etc.
+  progressId Int
+  progress   Progress            @relation(fields: [progressId], references: [id])
+  subDetails SubCategoryDetail[]
 }
 
 model SubCategoryDetail {
-  id               Int      @id @default(autoincrement())
+  id               Int            @id @default(autoincrement())
   progressDetailId Int
   subCategory      String
   status           String
@@ -177,6 +154,11 @@ model Document {
   day   String?
   date  DateTime?
   menu  String?
+
+  semesterId     Int
+  semester       Semester     @relation(fields: [semesterId], references: [id])
+  academicYearId Int
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
 }
 
 model AcademicCalendar {
@@ -187,17 +169,49 @@ model AcademicCalendar {
   completed   Boolean
 }
 
-model LearningModule {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  activities  Activity[]
+model AcademicYear {
+  id         Int          @id @default(autoincrement())
+  year       String // Example: "2025/2026"
+  semesters  Semester[]
+  Attendance Attendance[]
+  Progress   Progress[]
+  Document   Document[]
 }
 
-model Allocation {
-  id          Int      @id @default(autoincrement())
-  duration    String
-  activities  Activity[]
+model Semester {
+  id              Int              @id @default(autoincrement())
+  number          Int // Example: 1 for Semester 1, 2 for Semester 2
+  academicYearId  Int
+  academicYear    AcademicYear     @relation(fields: [academicYearId], references: [id])
+  weeks           Int // Example: 16 weeks per semester
+  learningModules LearningModule[]
+  classes         Class[]
+  attendances     Attendance[]
+  progresses      Progress[]
+  documents       Document[]
+}
+
+model LearningModule {
+  id            Int            @id @default(autoincrement())
+  title         String // Example: "My Family"
+  description   String?
+  durationWeeks Int // Example: 3 weeks
+  pancasilaDesc String
+  facilityDesc  String
+  conceptMap    String // URL or path to image
+  semesterId    Int
+  semester      Semester       @relation(fields: [semesterId], references: [id])
+  learningGoals LearningGoal[]
+  activities    CoreActivity[]
+  classes       Class[]        @relation("ClassLearningModules")
+}
+
+model LearningGoal {
+  id          Int            @id @default(autoincrement())
+  name        String // Goal name
+  description String // Goal description
+  moduleId    Int
+  module      LearningModule @relation(fields: [moduleId], references: [id])
 }
 
 model Message {

@@ -35,3 +35,16 @@ export async function POST(req) {
     return NextResponse.json({ success: false, error: error.message });
   }
 }
+
+export async function DELETE(req) {
+  const { id } = await req.json();
+
+  try {
+    await prisma.message.delete({
+      where: { id: parseInt(id) },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message });
+  }
+}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-export default function FormGuru({ status, data, onKembali }) {
+export default function FormGuru({ status, data, onKembali, fetchTeachers }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -62,6 +62,7 @@ export default function FormGuru({ status, data, onKembali }) {
         }
       }
       onKembali(); // Kembali ke tampilan tabel setelah submit
+      fetchTeachers(); // Update daftar guru setelah submit
     } catch (error) {
       console.error(error.message);
     }

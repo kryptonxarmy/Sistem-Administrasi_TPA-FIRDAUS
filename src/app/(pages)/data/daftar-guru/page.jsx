@@ -67,49 +67,6 @@ export default function Page() {
     },
   ];
 
-  const anakData = [
-    {
-      id: 1,
-      nama: "Anak 1",
-      nip: 1202213054,
-      kehadiran: "Hadir",
-      keterangan: "Aktif",
-      tanggal: "2023-01-01",
-    },
-    {
-      id: 2,
-      nama: "Anak 2",
-      nip: 1202213054,
-      kehadiran: "Hadir",
-      keterangan: "Aktif",
-      tanggal: "2023-01-02",
-    },
-    {
-      id: 3,
-      nama: "Anak 3",
-      nip: 1202213054,
-      kehadiran: "Tidak Hadir",
-      keterangan: "Sakit",
-      tanggal: "2023-01-03",
-    },
-    {
-      id: 4,
-      nama: "Anak 4",
-      nip: 1202213054,
-      kehadiran: "Hadir",
-      keterangan: "Aktif",
-      tanggal: "2023-01-04",
-    },
-    {
-      id: 5,
-      nama: "Anak 5",
-      nip: 1202213054,
-      kehadiran: "Tidak Hadir",
-      keterangan: "Libur",
-      tanggal: "2023-01-05",
-    },
-  ];
-
   return (
     <div className="flex flex-col gap-8">
       <div className="flex justify-around">
@@ -126,7 +83,7 @@ export default function Page() {
         ))}
       </div>
       {isTambahGuru || isEditGuru ? (
-        <FormGuru status={isEditGuru ? "edit" : "tambah"} data={editData} onKembali={handleKembali} />
+        <FormGuru status={isEditGuru ? "edit" : "tambah"} data={editData} onKembali={handleKembali} fetchTeachers={fetchTeachers}/>
       ) : (
         <>
           <h1 className="text-xl font-bold">Daftar Guru</h1>

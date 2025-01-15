@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function ModalKegiatan({ isOpen, onClose, isEdit, editData, handleInputChange, handleSave }) {
   return (
@@ -18,18 +18,16 @@ export default function ModalKegiatan({ isOpen, onClose, isEdit, editData, handl
             <option value="Kamis">Kamis</option>
             <option value="Jumat">Jumat</option>
           </select>
-          <input type="text" name="activity" value={editData.activity} onChange={handleInputChange} placeholder="Aktivitas" className="border border-gray-300 rounded-md p-2" />
-          <input type="text" name="remarks" value={editData.remarks} onChange={handleInputChange} placeholder="Catatan" className="border border-gray-300 rounded-md p-2" />
+          <input type="text" name="title" value={editData.title} onChange={handleInputChange} placeholder="Aktivitas" className="border border-gray-300 rounded-md p-2" />
+          <input type="text" name="description" value={editData.description} onChange={handleInputChange} placeholder="Deskripsi" className="border border-gray-300 rounded-md p-2" />
           <select name="completed" value={editData.completed ? "true" : "false"} onChange={handleInputChange} className="border border-gray-300 rounded-md p-2">
             <option value="false">Belum</option>
             <option value="true">Selesai</option>
           </select>
-          <DialogFooter>
-            <Button onClick={handleSave} className="bg-primary text-white font-semibold rounded-xl px-4 mt-4">
-              Simpan
-            </Button>
-          </DialogFooter>
         </div>
+        <DialogFooter>
+          <Button onClick={handleSave}>{isEdit ? "Simpan Perubahan" : "Tambah Kegiatan"}</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

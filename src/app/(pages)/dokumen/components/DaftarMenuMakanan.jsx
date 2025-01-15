@@ -4,22 +4,29 @@ import React, { useState, useEffect } from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { format, parseISO } from "date-fns";
+import { School, User } from "lucide-react";
 
-export default function DaftarMenuKegiatan() {
+export default function DaftarMenuMakanan() {
   const [menus, setMenus] = useState([]);
   const [editData, setEditData] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [semesters, setSemesters] = useState([]);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
 
   useEffect(() => {
     fetchMenus();
+    fetchSemesters();
+    fetchAcademicYears();
   }, []);
 
   const fetchMenus = async () => {
     try {
-      const res = await fetch("/api/admin/document/menuMakanan");
+      const res = await fetch(`/api/admin/document/menuMakanan?semesterId=${selectedSemester}&academicYearId=${selectedAcademicYear}`);
       const data = await res.json();
       if (data.success) {
         setMenus(data.documents);
@@ -31,9 +38,33 @@ export default function DaftarMenuKegiatan() {
     }
   };
 
+  const fetchSemesters = async () => {
+    try {
+      const response = await fetch("/api/semester");
+      const data = await response.json();
+      if (data.success) {
+        setSemesters(data.semesters);
+      }
+    } catch (error) {
+      console.error("Failed to fetch semesters:", error);
+    }
+  };
+
+  const fetchAcademicYears = async () => {
+    try {
+      const response = await fetch("/api/academicYear");
+      const data = await response.json();
+      if (data.success) {
+        setAcademicYears(data.academicYears);
+      }
+    } catch (error) {
+      console.error("Failed to fetch academic years:", error);
+    }
+  };
+
   const handleFormSubmit = async (formData) => {
     try {
-      const res = await fetch(`/api/admin/document/menuMakanan/${isEdit ? "updateMenuMakanan" : ""}`, {
+      const res = await fetch(`/api/admin/document/menuMakanan`, {
         method: isEdit ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,6 +90,27 @@ export default function DaftarMenuKegiatan() {
     setShowForm(true);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/admin/document/menuMakanan`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        fetchMenus(); // Refresh data after delete
+      } else {
+        console.error("Failed to delete menu data:", data.message);
+      }
+    } catch (error) {
+      console.error("Failed to delete menu data:", error);
+    }
+  };
+
   const handleTambah = () => {
     setEditData(null);
     setIsEdit(false);
@@ -69,8 +121,70 @@ export default function DaftarMenuKegiatan() {
     setShowForm(false);
   };
 
+  const handleFilterChange = async () => {
+    fetchMenus();
+  };
+
+  const selectedAcademicYearObj = academicYears.find(year => year.id === parseInt(selectedAcademicYear));
+  const selectedSemesterObj = semesters.find(semester => semester.id === parseInt(selectedSemester));
+
+  const items = [
+    {
+      title: "Tahun Ajar",
+      desc: selectedAcademicYearObj ? selectedAcademicYearObj.year : "Tidak ada data",
+      icon: User,
+    },
+    {
+      title: "Semester",
+      desc: selectedSemesterObj ? `Semester ${selectedSemesterObj.number}` : "Tidak ada data",
+      icon: School,
+    },
+  ];
+
   return (
     <div className="p-6">
+       <div className="flex mb-6 justify-around">
+        {items.map((item, index) => (
+          <div key={index} className="flex gap-4 items-center">
+            <div className="bg-primary size-16 flex justify-center items-center text-white rounded-full">
+              <item.icon className="text-2xl" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="text-gray-300">{item.title}</p>
+              <p className="font-bold text-lg">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-4 mt-4">
+        <select
+          value={selectedAcademicYear}
+          onChange={(e) => setSelectedAcademicYear(e.target.value)}
+          className="input"
+        >
+          <option value="">Pilih Tahun Ajar</option>
+          {academicYears.map((year) => (
+            <option key={year.id} value={year.id}>
+              {year.year}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedSemester}
+          onChange={(e) => setSelectedSemester(e.target.value)}
+          className="input"
+        >
+          <option value="">Pilih Semester</option>
+          {semesters.map((semester) => (
+            <option key={semester.id} value={semester.id}>
+              Semester {semester.number}
+            </option>
+          ))}
+        </select>
+        <Button onClick={handleFilterChange} className="btn btn-primary">
+          Filter
+        </Button>
+      </div>
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogTrigger asChild>
           <Button onClick={handleTambah} className="btn btn-primary mb-4">
@@ -81,7 +195,7 @@ export default function DaftarMenuKegiatan() {
           <DialogHeader>
             <DialogTitle>{isEdit ? "Update Data" : "Form Menu"}</DialogTitle>
           </DialogHeader>
-          <Form onSubmit={handleFormSubmit} initialData={editData} isEdit={isEdit} />
+          <Form onSubmit={handleFormSubmit} initialData={editData} isEdit={isEdit} selectedSemester={selectedSemester} selectedAcademicYear={selectedAcademicYear} />
           <DialogFooter>
             <Button onClick={handleKembali} className="btn btn-secondary">
               Kembali
@@ -89,7 +203,7 @@ export default function DaftarMenuKegiatan() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <h1 className="text-lg font-bold text-primary mb-4 mt-8">Daftar Menu Kegiatan</h1>
+      <h1 className="text-lg font-bold text-primary mb-4 mt-8">Daftar Menu Makanan</h1>
       <Table>
         <TableHeader>
           <TableRow>
@@ -111,6 +225,9 @@ export default function DaftarMenuKegiatan() {
                 <Button onClick={() => handleEdit(menu)} className="bg-primary text-white font-semibold rounded-xl px-4">
                   Edit
                 </Button>
+                <Button onClick={() => handleDelete(menu.id)} className="bg-red-500 text-white font-semibold rounded-xl px-4 ml-2">
+                  Delete
+                </Button>
               </TableCell>
             </TableRow>
           ))}
@@ -120,12 +237,14 @@ export default function DaftarMenuKegiatan() {
   );
 }
 
-function Form({ onSubmit, initialData, isEdit }) {
+function Form({ onSubmit, initialData, isEdit, selectedSemester, selectedAcademicYear }) {
   const [formData, setFormData] = useState({
     id: "",
     day: "",
     date: "",
     menu: "",
+    semesterId: selectedSemester || "",
+    academicYearId: selectedAcademicYear || "",
   });
 
   useEffect(() => {
@@ -135,9 +254,11 @@ function Form({ onSubmit, initialData, isEdit }) {
         day: initialData.day || "",
         date: initialData.date ? new Date(initialData.date).toISOString().substring(0, 10) : "",
         menu: initialData.menu || "",
+        semesterId: selectedSemester || initialData.semesterId,
+        academicYearId: selectedAcademicYear || initialData.academicYearId,
       });
     }
-  }, [initialData]);
+  }, [initialData, selectedSemester, selectedAcademicYear]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -166,6 +287,8 @@ function Form({ onSubmit, initialData, isEdit }) {
       day: "",
       date: "",
       menu: "",
+      semesterId: selectedSemester,
+      academicYearId: selectedAcademicYear,
     });
   };
 

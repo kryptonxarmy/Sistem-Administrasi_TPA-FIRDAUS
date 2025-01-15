@@ -3,7 +3,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GaleriKegiatan from "./components/GaleriKegiatan";
-import DaftarMenuKegiatan from "./components/DaftarMenuKegiatan";
+import DaftarMenuMakanan from "./components/DaftarMenuMakanan";
 
 export default function Page() {
   return (
@@ -21,7 +21,7 @@ export default function Page() {
             <GaleriKegiatan />
         </TabsContent>
         <TabsContent value="Daftar Menu Makan">
-          <DaftarMenuKegiatan />
+          <DaftarMenuMakanan />
         </TabsContent>
       </Tabs>
     </div>
