@@ -1,5 +1,6 @@
 import Image from "next/image";
+import Page from "./auth/login/page";
 
 export default function Home() {
-  return <div>hallaw</div>;
+  return <Page />;
 }

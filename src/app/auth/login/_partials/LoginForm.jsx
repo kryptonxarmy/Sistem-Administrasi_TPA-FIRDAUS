@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/toast";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -62,7 +64,21 @@ const LoginForm = () => {
           <Label className="block text-sm font-bold mb-2" htmlFor="password">
             Password
           </Label>
-          <Input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2 mb-4 bg-white text-black" required />
+          <Input
+          type={showPassword ? "text" : "password"}
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 mb-4 bg-white text-black"
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-2 top-10 transform -translate-y-1/2 text-gray-600"
+        >
+          {showPassword ? <EyeOff /> : <Eye />}
+        </button>
         </div>
         <Button type="submit" className="w-full bg-primary p-2 rounded">
           Masuk
