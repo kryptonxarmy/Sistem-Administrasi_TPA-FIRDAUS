@@ -22,6 +22,15 @@ export async function POST(req) {
   const { category, progressId, subDetails } = await req.json();
 
   try {
+    // Check if the progressId exists
+    const progress = await prisma.progress.findUnique({
+      where: { id: parseInt(progressId) },
+    });
+
+    if (!progress) {
+      return NextResponse.json({ success: false, error: "Progress ID does not exist" });
+    }
+
     const progressDetail = await prisma.progressDetail.create({
       data: {
         category,

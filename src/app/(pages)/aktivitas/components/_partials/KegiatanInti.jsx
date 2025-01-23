@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import React, { useState, useEffect } from "react";
 import ModalKegiatan from "./ModalKegiatan";
 
-export default function KegiatanInti() {
+export default function KegiatanInti({ data }) {
   const [tableData, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -12,7 +12,7 @@ export default function KegiatanInti() {
     day: "",
     week: "1", // Default week value as string
     classId: "1", // Default classId as string
-    learningModuleId: "1", // Default learningModuleId as string
+    learningModuleId: data.id.toString(), // Default learningModuleId from props data
     completed: false,
   });
   const [selectedWeek, setSelectedWeek] = useState(1);
@@ -40,12 +40,12 @@ export default function KegiatanInti() {
 
   const fetchKegiatanInti = async () => {
     try {
-      const res = await fetch(`/api/admin/aktivitas?classId=${selectedClass}`);
-      const data = await res.json();
-      if (data.success) {
-        setTableData(data.coreActivities);
+      const res = await fetch(`/api/admin/aktivitas/aktivitasAdmin?classId=${selectedClass}&learningModuleId=${data.id}`);
+      const result = await res.json();
+      if (result.success) {
+        setTableData(result.coreActivities);
       } else {
-        console.error("Failed to fetch kegiatan inti:", data.message);
+        console.error("Failed to fetch kegiatan inti:", result.message);
       }
     } catch (error) {
       console.error("Failed to fetch kegiatan inti:", error);
@@ -64,13 +64,13 @@ export default function KegiatanInti() {
     try {
       const payload = {
         ...editData,
-        week: parseInt(editData.week), // Konversi week menjadi integer
-        classId: parseInt(editData.classId), // Konversi classId menjadi integer
-        learningModuleId: parseInt(editData.learningModuleId), // Konversi learningModuleId menjadi integer
+        week: parseInt(editData.week), // Convert week to integer
+        classId: parseInt(editData.classId), // Convert classId to integer
+        learningModuleId: data.id, // Use learningModuleId from props data
         completed: editData.completed === "true" || editData.completed === true,
       };
 
-      const res = await fetch(`/api/admin/aktivitas`, {
+      const res = await fetch(`/api/admin/aktivitas/aktivitasAdmin`, {
         method: isEdit ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,13 +78,13 @@ export default function KegiatanInti() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (data.success) {
-        console.log("Data tersimpan:", data.coreActivity);
+      const result = await res.json();
+      if (result.success) {
+        console.log("Data tersimpan:", result.coreActivity);
         fetchKegiatanInti(); // Refresh data after save
         setIsModalOpen(false);
       } else {
-        console.error("Failed to save kegiatan inti:", data.message);
+        console.error("Failed to save kegiatan inti:", result.message);
       }
     } catch (error) {
       console.error("Failed to save kegiatan inti:", error);
@@ -94,9 +94,9 @@ export default function KegiatanInti() {
   const handleEdit = (data) => {
     setEditData({
       ...data,
-      week: data.week.toString(), // Konversi week menjadi string untuk input form
-      classId: data.classId.toString(), // Konversi classId menjadi string untuk input form
-      learningModuleId: data.learningModuleId.toString(), // Konversi learningModuleId menjadi string untuk input form
+      week: data.week.toString(), // Convert week to string for input form
+      classId: data.classId.toString(), // Convert classId to string for input form
+      learningModuleId: data.learningModuleId.toString(), // Convert learningModuleId to string for input form
     });
     setIsEdit(true);
     setIsModalOpen(true);
@@ -109,21 +109,36 @@ export default function KegiatanInti() {
       day: "",
       week: selectedWeek.toString(), // Set default week value
       classId: selectedClass, // Default classId as string
-      learningModuleId: "1", // Default learningModuleId as string
+      learningModuleId: data.id.toString(), // Default learningModuleId from props data
       completed: false,
     });
     setIsEdit(false);
     setIsModalOpen(true);
   };
 
-  const getActivityForDay = (week, day) => {
-    const activity = tableData.find((item) => item.week === week && item.day === day);
-    return activity ? activity.title : "";
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/admin/aktivitas/aktivitasAdmin`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        fetchKegiatanInti(); // Refresh data after deletion
+      } else {
+        console.error("Failed to delete kegiatan inti:", result.message);
+      }
+    } catch (error) {
+      console.error("Failed to delete kegiatan inti:", error);
+    }
   };
 
-  const getStatusForDay = (week, day) => {
-    const activity = tableData.find((item) => item.week === week && item.day === day);
-    return activity ? activity.completed : false;
+  const getActivitiesForDay = (week, day) => {
+    return tableData.filter((item) => item.week === week && item.day === day);
   };
 
   return (
@@ -166,17 +181,38 @@ export default function KegiatanInti() {
           {["Senin", "Selasa", "Rabu", "Kamis", "Jumat"].map((day) => (
             <tr key={day}>
               <td className="border px-4 py-2">{day}</td>
-              <td className="border px-4 py-2">{getActivityForDay(selectedWeek, day)}</td>
-              <td className="border px-4 py-2">{tableData.find((item) => item.week === selectedWeek && item.day === day)?.description || ""}</td>
-              <td className="border px-4 py-2">
-                <span className={`px-2 py-1 rounded-full ${getStatusForDay(selectedWeek, day) ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
-                  {getStatusForDay(selectedWeek, day) ? "Selesai" : "Belum"}
-                </span>
+              <td className="border px-4 space-y-4 py-2">
+                {getActivitiesForDay(selectedWeek, day).map((activity) => (
+                  <div key={activity.id} className="mb-2">
+                    {activity.title}
+                  </div>
+                ))}
+              </td>
+              <td className="border px-4 space-y-4 py-2">
+                {getActivitiesForDay(selectedWeek, day).map((activity) => (
+                  <div key={activity.id} className="mb-2">
+                    {activity.description}
+                  </div>
+                ))}
               </td>
               <td className="border px-4 py-2">
-                <Button onClick={() => handleEdit(tableData.find((item) => item.week === selectedWeek && item.day === day))} className="bg-blue-500 text-white font-semibold rounded-xl px-4">
-                  Edit
-                </Button>
+                {getActivitiesForDay(selectedWeek, day).map((activity) => (
+                  <div key={activity.id} className={`px-2 py-1 rounded-full ${activity.completed ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"} mb-2`}>
+                    {activity.completed ? "Selesai" : "Belum"}
+                  </div>
+                ))}
+              </td>
+              <td className="border px-4 max-w-sm flex flex-col py-2">
+                {getActivitiesForDay(selectedWeek, day).map((activity) => (
+                  <div key={activity.id} className="flex gap-2 mb-2">
+                    <Button onClick={() => handleEdit(activity)} className="bg-blue-500 text-white font-semibold rounded-xl flex-1">
+                      Edit
+                    </Button>
+                    <Button onClick={() => handleDelete(activity.id)} className="bg-red-500 text-white font-semibold rounded-xl flex-1">
+                      Delete
+                    </Button>
+                  </div>
+                ))}
               </td>
             </tr>
           ))}

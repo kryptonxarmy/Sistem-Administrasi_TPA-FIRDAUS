@@ -1,12 +1,15 @@
-// /pages/api/learningGoals/index.js
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const moduleId = searchParams.get('moduleId');
+
   try {
     const learningGoals = await prisma.learningGoal.findMany({
+      where: moduleId ? { moduleId: parseInt(moduleId) } : {},
       include: {
         module: true,
       },

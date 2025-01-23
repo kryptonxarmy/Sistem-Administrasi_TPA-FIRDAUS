@@ -75,14 +75,8 @@ export default function KegiatanIntiOrtu() {
     }
   };
 
-  const getActivityForDay = (week, day) => {
-    const activity = tableData.find((item) => item.week === week && item.day === day);
-    return activity ? activity.title : "";
-  };
-
-  const getStatusForDay = (week, day) => {
-    const activity = tableData.find((item) => item.week === week && item.day === day);
-    return activity ? activity.completed : false;
+  const getActivitiesForDay = (week, day) => {
+    return tableData.filter((item) => item.week === week && item.day === day);
   };
 
   const handleFilter = () => {
@@ -197,10 +191,26 @@ export default function KegiatanIntiOrtu() {
             {["Senin", "Selasa", "Rabu", "Kamis", "Jumat"].map((day) => (
               <tr key={day}>
                 <td className="border px-4 py-2">{day}</td>
-                <td className="border px-4 py-2">{getActivityForDay(selectedWeek, day)}</td>
-                <td className="border px-4 py-2">{tableData.find((item) => item.week === selectedWeek && item.day === day)?.description || ""}</td>
+                <td className="border px-4 space-y-4 py-2">
+                  {getActivitiesForDay(selectedWeek, day).map((activity) => (
+                    <div key={activity.id} className="mb-2">
+                      {activity.title}
+                    </div>
+                  ))}
+                </td>
+                <td className="border px-4 space-y-4 py-2">
+                  {getActivitiesForDay(selectedWeek, day).map((activity) => (
+                    <div key={activity.id} className="mb-2">
+                      {activity.description}
+                    </div>
+                  ))}
+                </td>
                 <td className="border px-4 py-2">
-                  <span className={`px-2 py-1 rounded-full ${getStatusForDay(selectedWeek, day) ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>{getStatusForDay(selectedWeek, day) ? "Selesai" : "Belum"}</span>
+                  {getActivitiesForDay(selectedWeek, day).map((activity) => (
+                    <div key={activity.id} className={`px-2 py-1 rounded-full ${activity.completed ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"} mb-2`}>
+                      {activity.completed ? "Selesai" : "Belum"}
+                    </div>
+                  ))}
                 </td>
               </tr>
             ))}

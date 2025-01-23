@@ -2,17 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
+import FormGuru from "./FormGuru"; // Pastikan Anda mengimpor komponen FormGuru
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"; // Pastikan Anda mengimpor komponen Table
 import { BookAudioIcon, CalendarCheck, GraduationCap, User } from "lucide-react";
-import FormGuru from "./FormGuru";
 import Link from "next/link";
 
 export default function Page() {
   const [isTambahGuru, setIsTambahGuru] = useState(false);
+  const [jumlahGuru, setJumlahGuru] = useState(0);
   const [isEditGuru, setIsEditGuru] = useState(false);
   const [editData, setEditData] = useState(null);
   const [teachers, setTeachers] = useState([]);
-  const [jumlahGuru, setJumlahGuru] = useState(0);
 
   useEffect(() => {
     fetchTeachers();
@@ -35,7 +35,7 @@ export default function Page() {
   };
 
   const handleTambah = () => {
-    setIsTambahGuru(!isTambahGuru);
+    setIsTambahGuru(true);
   };
 
   const handleKembali = () => {
@@ -44,83 +44,105 @@ export default function Page() {
     setEditData(null);
   };
 
-  const items = [
-    // {
-    //   title: "Jumlah Anak",
-    //   desc: 4,
-    //   icon: User,
-    // },
-    {
-      title: "Jumlah Guru",
-      desc: jumlahGuru,
-      icon: BookAudioIcon,
-    },
-    {
-      title: "Semester",
-      desc: 1,
-      icon: CalendarCheck,
-    },
-    {
-      title: "Tahun Ajar",
-      desc: 2024,
-      icon: GraduationCap,
-    },
-  ];
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/admin/teacher`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        fetchTeachers(); // Refresh the list after deletion
+      } else {
+        console.error("Failed to delete teacher:", data.error);
+      }
+    } catch (error) {
+      console.error("Failed to delete teacher:", error);
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex justify-around">
-        {items.map((item, index) => (
-          <div key={index} className="flex gap-4 items-center">
-            <div className="bg-primary size-16 flex justify-center items-center text-white rounded-full">
-              <item.icon className="text-2xl" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <p className="text-gray-300">{item.title}</p>
-              <p className="font-bold text-lg">{item.desc}</p>
-            </div>
-          </div>
-        ))}
+    <div className="flex flex-col gap-8 p-4">
+      <div className="flex justify-between bg-primary text-primary-foreground rounded-xl shadow-lg p-8">
+        <div>
+          <h1 className="font-bold text-4xl">Data Guru</h1>
+          <p>Informasi terbaru di LearnWithFirdaus.com</p>
+        </div>
       </div>
+
+      <div className="flex justify-around">
+        <div className="flex gap-4 items-center">
+          <div className="bg-primary size-16 flex justify-center items-center text-white rounded-full">
+            <User className="text-2xl" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-gray-300">Jumlah Guru</p>
+            <p className="font-bold text-lg">{teachers.length}</p>
+          </div>
+        </div>
+        <div className="flex gap-4 items-center">
+          <div className="bg-primary size-16 flex justify-center items-center text-white rounded-full">
+            <CalendarCheck className="text-2xl" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-gray-300">Semester</p>
+            <p className="font-bold text-lg">1</p>
+          </div>
+        </div>
+        <div className="flex gap-4 items-center">
+          <div className="bg-primary size-16 flex justify-center items-center text-white rounded-full">
+            <GraduationCap className="text-2xl" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-gray-300">Tahun Ajar</p>
+            <p className="font-bold text-lg">2024</p>
+          </div>
+        </div>
+      </div>
+
       {isTambahGuru || isEditGuru ? (
-        <FormGuru status={isEditGuru ? "edit" : "tambah"} data={editData} onKembali={handleKembali} fetchTeachers={fetchTeachers}/>
+        <FormGuru status={isEditGuru ? "edit" : "tambah"} data={editData} onKembali={handleKembali} fetchTeachers={fetchTeachers} />
       ) : (
         <>
           <h1 className="text-xl font-bold">Daftar Guru</h1>
           <Table>
             <TableHeader>
-              <TableRow className="text-primary hover:bg-transparent">
-                <TableHead className="text-center">No</TableHead>
-                <TableHead className="text-center">Nama</TableHead>
-                <TableHead className="text-center">NIP</TableHead>
-                <TableHead className="text-center">No Telp</TableHead>
-                <TableHead className="text-center">Tanggal</TableHead>
-                <TableHead className="text-center">email</TableHead>
-
-                <TableHead className="text-center">Aksi</TableHead>
+              <TableRow>
+                <TableHead>Nama Guru</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>No Telp</TableHead>
+                <TableHead>NIP</TableHead>
+                <TableHead>Tanggal Lahir</TableHead>
+                <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {teachers.map((teacher, index) => (
+              {teachers.map((teacher) => (
                 <TableRow key={teacher.id}>
-                  <TableCell className="text-center">{index + 1}</TableCell>
-                  <TableCell className="text-center">{teacher.name}</TableCell>
-                  <TableCell className="text-center">{teacher.id}</TableCell>
-                  <TableCell className="text-center">{teacher.phone}</TableCell>
-                  <TableCell className="text-center">{new Date(teacher.birthDate).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-center">{teacher.email}</TableCell>
-                  <TableCell className="text-center">
-                    <Button onClick={() => handleEdit(teacher)} className="bg-blue-500 text-white font-semibold rounded-xl px-4">
+                  <TableCell>{teacher.name}</TableCell>
+                  <TableCell>{teacher.email}</TableCell>
+                  <TableCell>{teacher.phone}</TableCell>
+                  <TableCell>{teacher.nip}</TableCell>
+                  <TableCell>{new Date(teacher.birthDate).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleEdit(teacher)} className="bg-primary text-white font-semibold rounded-xl px-4">
                       Edit
+                    </Button>
+                    <Button onClick={() => handleDelete(teacher.id)} className="bg-red-500 text-white font-semibold rounded-xl px-4 ml-2">
+                      Delete
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <div className="flex w-full items-center gap-6 justify-end">
+          <div className="flex gap-4 justify-end items-center">
             <Button onClick={handleTambah} className="bg-primary text-white font-semibold rounded-xl px-4">
-              INPUT DATA
+              Tambah Guru
             </Button>
             <Link href={"/data"}>
               <Button className="bg-primary text-white font-semibold rounded-xl px-4">KEMBALI</Button>

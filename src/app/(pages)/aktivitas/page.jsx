@@ -4,24 +4,31 @@ import DropZone from "@/components/DropZone";
 import { ArrowRight, School, Timer, User } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Detail from "./components/Detail";
+import ModalLearningModule from "./components/ModalLearningModule";
+import { Toaster } from "@/components/ui/toast";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { getCldImageUrl } from "next-cloudinary";
+import { useRouter } from "next/navigation";
 
-export default function page() {
+export default function Aktivitas() {
   const [isSelengkapnyaClicked, setIsSelengkapnyaClicked] = useState(false);
   const [learningModules, setLearningModules] = useState([]);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    durationWeeks: '',
-    pancasilaDesc: '',
-    facilityDesc: '',
-    conceptMap: '',
-    semesterId: '',
-  });
- 
+  const [selectedModule, setSelectedModule] = useState(null);
+  const [selectedModuleId, setSelectedModuleId] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     fetchLearningModule();
   }, []);
+
+  useEffect(() => {
+    if (selectedModuleId) {
+      const module = learningModules.find((module) => module.id === parseInt(selectedModuleId));
+      setSelectedModule(module);
+    }
+  }, [selectedModuleId, learningModules]);
 
   const fetchLearningModule = async () => {
     try {
@@ -29,6 +36,7 @@ export default function page() {
       const data = await res.json();
       if (data.success) {
         setLearningModules(data.learningModules);
+        setSelectedModuleId(data.learningModules[0]?.id.toString() || "");
       } else {
         console.error("Failed to fetch Learning Module:", data.message);
       }
@@ -37,26 +45,31 @@ export default function page() {
     }
   };
 
+  const handleImageClicked = (public_id) => {
+    window.open(`https://res.cloudinary.com/dsp8lxkqu/image/upload/v1737181752/${public_id}.jpg`, '_blank');
+  };
+
   const items = [
     {
       title: "Modul Ajar",
-      desc: learningModules.length > 0 ? learningModules[0].title : "Tidak ada data",
+      desc: selectedModule ? selectedModule.title : "Tidak ada data",
       icon: User,
     },
     {
       title: "Alokasi Waktu",
-      desc: learningModules.length > 0 ? `${learningModules[0].durationWeeks} minggu` : "Tidak ada data",
+      desc: selectedModule ? `${selectedModule.durationWeeks} minggu` : "Tidak ada data",
       icon: Timer,
     },
     {
       title: "Semester",
-      desc: learningModules.length > 0 ? `Semester ${learningModules[0].semester.number}` : "Tidak ada data",
+      desc: selectedModule ? `Semester ${selectedModule.semester.number}` : "Tidak ada data",
       icon: School,
     },
   ];
 
   return (
     <>
+      <Toaster />
       <div className="flex flex-col gap-8">
         <div className="flex justify-around">
           {items.map((item, index) => (
@@ -71,28 +84,67 @@ export default function page() {
             </div>
           ))}
         </div>
+        <div className="flex flex-col gap-4">
+          <label htmlFor="module-select" className="text-lg font-bold">Pilih Modul Ajar:</label>
+          <select
+            id="module-select"
+            value={selectedModuleId}
+            onChange={(e) => setSelectedModuleId(e.target.value)}
+            className="p-2 border rounded"
+          >
+            {learningModules.map((module) => (
+              <option key={module.id} value={module.id}>
+                {module.title}
+              </option>
+            ))}
+          </select>
+        </div>
         {isSelengkapnyaClicked ? (
-         <Detail data={learningModules[0]} />
+          <Detail data={selectedModule} />
         ) : (
           <>
             <div className="flex flex-col gap-4">
               <h1 className="text-2xl font-bold">Peta Konsep</h1>
+              <Link href="/aktivitas/tambah-modul-ajar">
+                <Button className="bg-primary text-white">Atur Modul Ajar</Button>
+              </Link>
               <div>
-                <DropZone />
+              {selectedModule && selectedModule.conceptMap ? (
+                  <div className="w-full h-64 overflow-hidden" onClick={() => handleImageClicked(selectedModule.conceptMap)}>
+                    <img
+                      src={getCldImageUrl({
+                        src: selectedModule.conceptMap,
+                        width: 640,
+                        height: 400,
+                      })}
+                      alt="Concept Map"
+                      className="mt-2 w-full h-auto"
+                    />
+                  </div>
+                ) : (
+                  <p>Peta konsep belum ditambahkan</p>
+                )}
               </div>
             </div>
 
             <div className="flex justify-around gap-4">
               <div className="flex flex-col p-4 2xl:flex-1 2xl:h-96 2xl:p-10 gap-4 bg-[#E2D4F780] rounded-xl">
-                <h1 className="text-lg text-primary font-semibold 2xl:text-2xl text-center">PROFIL PELAJAR PANCASILA YANG BERKAITAN</h1>
-                <p>{learningModules.length > 0 ? learningModules[0].pancasilaDesc : "Tuliskan Deskripsi..."}</p>
+                <h1 className="text-lg text-primary font-semibold 2xl:text-2xl text-center">
+                  PROFIL PELAJAR PANCASILA YANG BERKAITAN
+                </h1>
+                <div dangerouslySetInnerHTML={{ __html: selectedModule ? selectedModule.pancasilaDesc : "Tuliskan Deskripsi..." }} />
               </div>
               <div className="flex flex-col p-4 2xl:flex-1 2xl:h-96 2xl:p-10 gap-4 bg-[#E2D4F780] rounded-xl">
-                <h1 className="text-lg text-primary font-semibold 2xl:text-2xl text-center">SARANA DAN PRASARANA</h1>
-                <p>{learningModules.length > 0 ? learningModules[0].facilityDesc : "Tuliskan Deskripsi..."}</p>
+                <h1 className="text-lg text-primary font-semibold 2xl:text-2xl text-center">
+                  SARANA DAN PRASARANA
+                </h1>
+                <div dangerouslySetInnerHTML={{ __html: selectedModule ? selectedModule.facilityDesc : "Tuliskan Deskripsi..." }} />
               </div>
             </div>
-            <p onClick={() => setIsSelengkapnyaClicked(!isSelengkapnyaClicked)} className="flex self-end gap-4 text-primary font-bold hover:cursor-pointer">
+            <p
+              onClick={() => setIsSelengkapnyaClicked(!isSelengkapnyaClicked)}
+              className="flex self-end gap-4 text-primary font-bold hover:cursor-pointer"
+            >
               Lihat Selengkapnya <ArrowRight />{" "}
             </p>
           </>

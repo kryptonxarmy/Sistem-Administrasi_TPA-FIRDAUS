@@ -245,6 +245,24 @@ const LaporanPerkembangan = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Detail Page</h1>
+      <div>
+      <div className="p-4 border rounded-md shadow-md">
+          <h2 className="text-lg font-semibold">Child Information</h2>
+      <table className="w-full mt-4">
+          <tbody>
+            <tr>
+              <td className="font-medium">Name</td>
+              <td className="font-bold">{progress[0]?.child.name || "N/A"}</td>
+            </tr>
+            <tr>
+              <td className="font-medium">Student ID</td>
+              <td className="font-bold">{progress[0]?.child.studentId || "N/A"}</td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+      </div>
       {progress.map((item) => (
         <div key={item.id} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

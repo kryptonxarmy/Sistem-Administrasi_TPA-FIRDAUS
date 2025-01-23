@@ -15,6 +15,7 @@ model User {
   role             Role
   admin            Admin?
   parent           Parent?
+  profilePhoto String?  
   sentMessages     Message[] @relation("Sender")
   receivedMessages Message[] @relation("Receiver")
 }
@@ -26,10 +27,11 @@ model Admin {
 }
 
 model Parent {
-  id     Int     @id @default(autoincrement())
-  userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id])
-  child  Child[]
+  id       Int       @id @default(autoincrement())
+  userId   Int       @unique
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child    Child[]
+  feedback Feedback[]
 }
 
 model Child {
@@ -44,11 +46,12 @@ model Child {
   postalCode String
   country    String
   parentId   Int
-  parent     Parent       @relation(fields: [parentId], references: [id])
+  parent     Parent       @relation(fields: [parentId], references: [id], onDelete: Cascade)
   classId    Int
-  class      Class        @relation(fields: [classId], references: [id])
+  class      Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
   progress   Progress[]
   attendance Attendance[]
+  profilePhoto String?  
 }
 
 model Teacher {
@@ -56,6 +59,7 @@ model Teacher {
   name       String
   email      String       @unique
   phone      String
+  nip        String?
   birthDate  DateTime
   gender     String
   address    String
@@ -63,6 +67,7 @@ model Teacher {
   postalCode String
   country    String
   attendance Attendance[]
+  profilePhoto String?  
 }
 
 model Class {
@@ -74,6 +79,12 @@ model Class {
   children        Child[]
   coreActivities  CoreActivity[]
   learningModules LearningModule[] @relation("ClassLearningModules")
+}
+
+model Kegiatan {
+  id               Int            @id @default(autoincrement())
+  title            String
+  image            String
 }
 
 model CoreActivity {
@@ -101,7 +112,7 @@ model Attendance {
   arrivalTime    DateTime?
   departureTime  DateTime?
   remarks        String?
-  child          Child?       @relation(fields: [childId], references: [id])
+  child          Child?       @relation(fields: [childId], references: [id], onDelete: Cascade)
   teacher        Teacher?     @relation(fields: [teacherId], references: [id])
   semesterId     Int
   semester       Semester     @relation(fields: [semesterId], references: [id])
@@ -121,7 +132,7 @@ model Progress {
   reflection String
   comments   String?
   childId    Int
-  child      Child            @relation(fields: [childId], references: [id])
+  child      Child            @relation(fields: [childId], references: [id], onDelete: Cascade)
   details    ProgressDetail[]
 
   semesterId     Int
@@ -222,6 +233,14 @@ model Message {
   sender     User     @relation(fields: [senderId], references: [id], name: "Sender")
   receiverId Int
   receiver   User     @relation(fields: [receiverId], references: [id], name: "Receiver")
+}
+
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  content   String
+  parentId  Int
+  parent    Parent   @relation(fields: [parentId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 enum Role {

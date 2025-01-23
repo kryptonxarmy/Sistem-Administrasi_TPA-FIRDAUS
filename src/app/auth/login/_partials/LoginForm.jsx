@@ -60,7 +60,7 @@ const LoginForm = () => {
           </Label>
           <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 mb-4 bg-white text-black" required />
         </div>
-        <div className="mb-4 text-white">
+        <div className="mb-4 text-white relative">
           <Label className="block text-sm font-bold mb-2" htmlFor="password">
             Password
           </Label>
@@ -75,7 +75,7 @@ const LoginForm = () => {
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-2 top-10 transform -translate-y-1/2 text-gray-600"
+          className="absolute right-2 top-12 transform -translate-y-1/2 text-gray-600"
         >
           {showPassword ? <EyeOff /> : <Eye />}
         </button>

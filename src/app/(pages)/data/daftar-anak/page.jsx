@@ -44,6 +44,27 @@ export default function Page() {
     setEditData(null);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/admin/child`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        fetchChildren(); // Refresh the list after deletion
+      } else {
+        console.error("Failed to delete child:", data.error);
+      }
+    } catch (error) {
+      console.error("Failed to delete child:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8 p-4">
       <div className="flex justify-between bg-primary text-primary-foreground rounded-xl shadow-lg p-8">
@@ -106,11 +127,13 @@ export default function Page() {
                   <TableCell>{child.parent.user.name}</TableCell>
                   <TableCell>{child.studentId}</TableCell>
                   <TableCell>{new Date(child.birthDate).toLocaleDateString()}</TableCell>
-
                   <TableCell>{child.class.name}</TableCell>
                   <TableCell>
                     <Button onClick={() => handleEdit(child)} className="bg-primary text-white font-semibold rounded-xl px-4">
                       Edit
+                    </Button>
+                    <Button onClick={() => handleDelete(child.id)} className="bg-red-500 text-white font-semibold rounded-xl px-4 ml-2">
+                      Delete
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -118,11 +141,10 @@ export default function Page() {
             </TableBody>
           </Table>
           <div className="flex gap-4 justify-end items-center">
-
-          <Button onClick={handleTambah} className="bg-primary text-white font-semibold rounded-xl px-4">
-            Tambah Anak
-          </Button>
-          <Link href={"/data"}>
+            <Button onClick={handleTambah} className="bg-primary text-white font-semibold rounded-xl px-4">
+              Tambah Anak
+            </Button>
+            <Link href={"/data"}>
               <Button className="bg-primary text-white font-semibold rounded-xl px-4">KEMBALI</Button>
             </Link>
           </div>

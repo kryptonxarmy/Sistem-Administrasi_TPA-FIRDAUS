@@ -77,3 +77,17 @@ export async function PUT(req) {
     return NextResponse.json({ success: false, error: error.message });
   }
 }
+
+export async function DELETE(req) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  try {
+    await prisma.document.delete({
+      where: { id: parseInt(id) },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message });
+  }
+}

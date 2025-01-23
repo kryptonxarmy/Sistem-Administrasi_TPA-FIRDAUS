@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { CldUploadWidget } from "next-cloudinary";
 
 export default function FormAnak({ status, data, onKembali, fetchChildren }) {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ export default function FormAnak({ status, data, onKembali, fetchChildren }) {
     postalCode: "",
     country: "",
     classId: "",
+    profilePhoto: "", // Add this line
   });
 
   const [parents, setParents] = useState([]);
@@ -57,6 +59,10 @@ export default function FormAnak({ status, data, onKembali, fetchChildren }) {
     }));
   };
 
+  const handleUploadSuccess = (result) => {
+    setFormData((prevData) => ({ ...prevData, profilePhoto: result.info.public_id }));
+  };
+
   const handleSubmit = async () => {
     try {
       const payload = {
@@ -92,10 +98,21 @@ export default function FormAnak({ status, data, onKembali, fetchChildren }) {
       </div>
       <div className="flex gap-4 justify-around">
         <div className="size-36 overflow-hidden rounded-full border-2 border-primary">
-          <img className="object-cover object-bottom" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa4xjShh4ynJbrgYrW_aB4lhKSxeMzQ3cO_A&s" alt="profile" />
+          <img
+            className="object-cover object-center"
+            src={formData.profilePhoto ? `https://res.cloudinary.com/dsp8lxkqu/image/upload/${formData.profilePhoto}.jpg` : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa4xjShh4ynJbrgYrW_aB4lhKSxeMzQ3cO_A&s"}
+            alt="profile"
+          />
         </div>
         <div className="flex flex-col w-[70%] gap-4">
           <h1 className="text-xl font-bold">{status === "edit" ? "Edit Anak" : "Tambah Anak"}</h1>
+          <CldUploadWidget uploadPreset="tpa_firdaus" onSuccess={handleUploadSuccess}>
+            {({ open }) => (
+              <Button type="button" onClick={() => open()} className="w-full p-2 border border-gray-300 rounded">
+                Upload Profile Photo
+              </Button>
+            )}
+          </CldUploadWidget>
           <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Nama Anak" className="border border-gray-300 rounded-md p-2" />
           <select name="parentId" value={formData.parentId} onChange={handleChange} className="border border-gray-300 rounded-md text-black p-2">
             <option value="">Pilih Orang Tua</option>

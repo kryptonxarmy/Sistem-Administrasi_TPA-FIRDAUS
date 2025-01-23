@@ -15,9 +15,9 @@ export default function GaleriKegiatan() {
   const [academicYears, setAcademicYears] = useState([]);
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchDocuments();
     fetchSemesters();
     fetchAcademicYears();
   }, []);
@@ -59,6 +59,11 @@ export default function GaleriKegiatan() {
   };
 
   const handleFormSubmit = async (formData) => {
+    if (!selectedAcademicYear || !selectedSemester) {
+      setError("Please select both academic year and semester.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/admin/document/galeriKegiatan", {
         method: isEdit ? "PUT" : "POST",
@@ -73,6 +78,7 @@ export default function GaleriKegiatan() {
         setShowForm(false);
         setEditData(null);
         setIsEdit(false);
+        setError("");
       } else {
         console.error("Failed to save document:", data.error);
       }
@@ -100,14 +106,36 @@ export default function GaleriKegiatan() {
   };
 
   const handleFilterChange = async () => {
+    if (!selectedAcademicYear || !selectedSemester) {
+      setError("Please select both academic year and semester.");
+      return;
+    }
+
     try {
       const response = await fetch(`/api/admin/document/galeriKegiatan?semesterId=${selectedSemester}&academicYearId=${selectedAcademicYear}`);
       const data = await response.json();
       if (data.success) {
         setDocuments(data.documents);
+        setError("");
       }
     } catch (error) {
       console.error("Failed to fetch filtered documents:", error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`/api/admin/document/galeriKegiatan?id=${id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        fetchDocuments();
+      } else {
+        console.error("Failed to delete document:", data.error);
+      }
+    } catch (error) {
+      console.error("Failed to delete document:", error);
     }
   };
 
@@ -171,43 +199,55 @@ export default function GaleriKegiatan() {
           Filter
         </Button>
       </div>
-      {showForm ? (
-        <div className="flex flex-col gap-4">
-          <Button onClick={handleKembali} className="btn btn-secondary self-start">
-            Kembali
-          </Button>
-          <Form onSubmit={handleFormSubmit} initialData={editData} isEdit={isEdit} selectedSemester={selectedSemester} selectedAcademicYear={selectedAcademicYear} />
-        </div>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
+      {!selectedAcademicYear || !selectedSemester ? (
+        <p className="text-center text-gray-500 mt-4">Harap memilih tahun ajar dan semester dahulu untuk menampilkan kegiatan.</p>
       ) : (
         <>
-          <h1 className="text-lg font-bold text-primary mb-4 mt-8">Galeri Kegiatan</h1>
-          <Button onClick={handleTambah} className="btn btn-primary mb-4">
-            Tambah Kegiatan
-          </Button>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {documents.map((doc) => (
-              <div key={doc.id} className="p-4 max-w-xl h-[50vh] shadow-2xl rounded-xl">
-                <div className="flex flex-col gap-4">
-                  <div className="p-2 rounded-full size-14 flex justify-center items-center shadow-xl bg-primary">
-                    <Image className="text-white" />
+          {showForm ? (
+            <div className="flex flex-col gap-4">
+              <Button onClick={handleKembali} className="btn btn-secondary self-start">
+                Kembali
+              </Button>
+              <Form onSubmit={handleFormSubmit} initialData={editData} isEdit={isEdit} selectedSemester={selectedSemester} selectedAcademicYear={selectedAcademicYear} />
+            </div>
+          ) : (
+            <>
+              <h1 className="text-lg font-bold text-primary mb-4 mt-8">Galeri Kegiatan</h1>
+              <Button onClick={handleTambah} className="btn btn-primary mb-4">
+                Tambah Kegiatan
+              </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {documents.map((doc) => (
+                  <div key={doc.id} className="p-4 max-w-xl h-[50vh] shadow-2xl rounded-xl">
+                    <div className="flex flex-col gap-4">
+                      <div className="p-2 rounded-full size-14 flex justify-center items-center shadow-xl bg-primary">
+                        <Image className="text-white" />
+                      </div>
+                      <div>
+                        <Separator orientation="vertical" />
+                        <h1 className="text-xl font-semibold">{doc.title}</h1>
+                      </div>
+                      <div className="flex gap-4 text-primary items-center">
+                        <Link href={doc.link} target="_blank" className="text-primary">
+                          <p className="font-semibold">Lihat Selengkapnya</p>
+                        </Link>
+                        <ArrowRight />
+                      </div>
+                      <div className="flex flex-col gap-4">
+                        <Button onClick={() => handleEdit(doc)} className="bg-primary text-white font-semibold rounded-xl px-4">
+                          Edit
+                        </Button>
+                        <Button onClick={() => handleDelete(doc.id)} className="bg-red-500 text-white font-semibold rounded-xl px-4">
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Separator orientation="vertical" />
-                    <h1 className="text-xl font-semibold">{doc.title}</h1>
-                  </div>
-                  <div className="flex gap-4 text-primary items-center">
-                    <Link href={doc.link} target="_blank" className="text-primary">
-                      <p className="font-semibold">Lihat Selengkapnya</p>
-                    </Link>
-                    <ArrowRight />
-                  </div>
-                  <Button onClick={() => handleEdit(doc)} className="bg-primary text-white font-semibold rounded-xl px-4">
-                    Edit
-                  </Button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </>
       )}
     </div>

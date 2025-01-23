@@ -6,6 +6,7 @@ export default function useUser() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
+  const [profilePict, setProfilePict] = useState("");
   const [children, setChildren] = useState([]);
 
   const router = useRouter();
@@ -32,10 +33,10 @@ export default function useUser() {
 
         const data = await res.json();
         if (res.ok) {
-          console.log("User data fetched:", data.user);
           setUser(data.user);
           setRole(data.user.role);
           setName(data.user.name);
+          setProfilePict(data.user.profilePhoto);
 
           // Jika role adalah PARENT, ambil data anak
           if (data.user.role === "PARENT") {
@@ -47,7 +48,6 @@ export default function useUser() {
             const childData = await childRes.json();
             if (childRes.ok) {
               const filteredChildren = childData?.children?.filter((child) => child.parent.userId === data.user.id);
-              console.log("Children data fetched for parent:", filteredChildren);
               setChildren(filteredChildren);
             } else {
               console.error("Failed to fetch children:", childData.message);
@@ -65,7 +65,28 @@ export default function useUser() {
     fetchUser();
   }, []);
 
-  // console.log("useUser state:", { user, loading, name, children, role });
+  const updateProfilePhoto = async (profilePhoto) => {
+    try {
+      const res = await fetch("/api/user/profilePict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: user.id, profilePhoto }),
+      });
 
-  return { user, loading, name, children, role };
+      if (!res.ok) {
+        throw new Error("Failed to update profile photo");
+      }
+
+      const data = await res.json();
+      setUser(data.user);
+      setProfilePict(data.user.profilePhoto);
+    } catch (error) {
+      console.error("Failed to update profile photo:", error);
+    }
+  };
+  // console.log("user : ", { user, loading, name, children, role, profilePict, updateProfilePhoto })
+
+  return { user, loading, name, children, role, profilePict, updateProfilePhoto };
 }

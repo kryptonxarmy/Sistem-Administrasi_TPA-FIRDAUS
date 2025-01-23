@@ -20,7 +20,7 @@ export default function Sidebar() {
     { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Aktivitas", link: "/aktivitas" },
     { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Laporan", link: "/laporan" },
     { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Dokumen", link: "/dokumen" },
-    // { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Masukan dan Saran", link: "/masukan-saran" },
+    { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Masukan dan Saran", link: "/masukan-saran" },
   ];
 
   const parentMenu = [
@@ -29,7 +29,7 @@ export default function Sidebar() {
     { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Aktivitas", link: "/ortu/aktivitas" },
     { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Laporan", link: "/ortu/laporan" },
     { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Dokumen", link: "/ortu/dokumen" },
-    // { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Bantuan", link: "/ortu/bantuan" },
+    { icon: "/assets/guru/icons/icon-dashboard.svg", title: "Bantuan", link: "/ortu/bantuan" },
   ];
 
   const menu = role === "ADMIN" ? adminMenu : parentMenu;
