@@ -11,12 +11,14 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getCldImageUrl } from "next-cloudinary";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export default function Aktivitas() {
   const [isSelengkapnyaClicked, setIsSelengkapnyaClicked] = useState(false);
   const [learningModules, setLearningModules] = useState([]);
   const [selectedModule, setSelectedModule] = useState(null);
   const [selectedModuleId, setSelectedModuleId] = useState("");
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +49,14 @@ export default function Aktivitas() {
 
   const handleImageClicked = (public_id) => {
     window.open(`https://res.cloudinary.com/dsp8lxkqu/image/upload/v1737181752/${public_id}.jpg`, '_blank');
+  };
+
+  const handleSelengkapnyaClick = () => {
+    if (!selectedModule) {
+      setIsAlertOpen(true);
+    } else {
+      setIsSelengkapnyaClicked(!isSelengkapnyaClicked);
+    }
   };
 
   const items = [
@@ -109,7 +119,7 @@ export default function Aktivitas() {
                 <Button className="bg-primary text-white">Atur Modul Ajar</Button>
               </Link>
               <div>
-              {selectedModule && selectedModule.conceptMap ? (
+                {selectedModule && selectedModule.conceptMap ? (
                   <div className="w-full h-64 overflow-hidden" onClick={() => handleImageClicked(selectedModule.conceptMap)}>
                     <img
                       src={getCldImageUrl({
@@ -142,14 +152,31 @@ export default function Aktivitas() {
               </div>
             </div>
             <p
-              onClick={() => setIsSelengkapnyaClicked(!isSelengkapnyaClicked)}
-              className="flex self-end gap-4 text-primary font-bold hover:cursor-pointer"
+              onClick={handleSelengkapnyaClick}
+              className={`flex self-end gap-4 text-primary font-bold hover:cursor-pointer ${!selectedModule ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               Lihat Selengkapnya <ArrowRight />{" "}
             </p>
           </>
         )}
       </div>
+
+      {/* Alert Modal */}
+      <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alert</DialogTitle>
+            <DialogDescription>
+              Anda belum memilih modul ajar. Harap pilih terlebih dahulu.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setIsAlertOpen(false)} className="bg-primary text-white p-2 rounded mt-2">
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

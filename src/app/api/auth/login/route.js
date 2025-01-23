@@ -19,9 +19,9 @@ export async function POST(req) {
       const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, SECRET_KEY, { expiresIn: "1h" });
       return NextResponse.json({ success: true, token });
     } else {
-      return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 500 });
+      return NextResponse.json({ success: false, error: "Invalid credentials" }, );
     }
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, );
   }
 }

@@ -7,7 +7,7 @@ export async function GET() {
     const activities = await prisma.academicCalendar.findMany();
     return NextResponse.json(activities, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error.message });
   }
 }
 
@@ -26,7 +26,7 @@ export async function POST(req) {
     });
     return NextResponse.json(newActivity, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error.message });
   }
 }
 
@@ -48,7 +48,7 @@ export async function PUT(req) {
     });
     return NextResponse.json(updatedActivity, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error.message });
   }
 }
 
@@ -62,6 +62,6 @@ export async function DELETE(req) {
     });
     return NextResponse.json({ message: 'Activity deleted' }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error.message });
   }
 }

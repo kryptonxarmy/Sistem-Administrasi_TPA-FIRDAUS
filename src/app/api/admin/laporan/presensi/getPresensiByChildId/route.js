@@ -38,6 +38,6 @@ export async function GET(req) {
     return NextResponse.json({ success: true, attendance });
   } catch (error) {
     console.error("Failed to fetch attendance:", error);
-    return NextResponse.json({ success: false, message: "Failed to fetch attendance" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Failed to fetch attendance" });
   }
 }

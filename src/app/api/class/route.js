@@ -17,7 +17,7 @@ export async function POST(req) {
     });
     return NextResponse.json({ success: true, class: newClass });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message });
   }
 }
 
@@ -26,6 +26,6 @@ export async function GET(req) {
     const classes = await prisma.class.findMany();
     return NextResponse.json({ success: true, classes });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message });
   }
 }

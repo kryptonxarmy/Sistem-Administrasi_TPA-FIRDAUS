@@ -60,7 +60,7 @@ export async function PUT(req) {
     });
     return NextResponse.json({ success: true, teacher: updatedTeacher });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, 500);
+    return NextResponse.json({ success: false, error: error.message });
   }
 }
 
@@ -73,6 +73,6 @@ export async function DELETE(req) {
     });
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, 500);
+    return NextResponse.json({ success: false, error: error.message });
   }
 }
