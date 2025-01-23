@@ -30,28 +30,6 @@ export async function POST(req) {
   }
 }
 
-// PUT /api/academic-calendar/[id]
-export async function PUT(req) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
-  const { activityDate, name, description, isCompleted } = await req.json();
-
-  try {
-    const updatedActivity = await prisma.academicCalendar.update({
-      where: { id: parseInt(id) },
-      data: {
-        activityDate: new Date(activityDate),
-        name,
-        description,
-        isCompleted,
-      },
-    });
-    return NextResponse.json(updatedActivity, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ message: error.message });
-  }
-}
-
 // DELETE /api/academic-calendar/:id
 export async function DELETE(req) {
   const { id } = req.params;
